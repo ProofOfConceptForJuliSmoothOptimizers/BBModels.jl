@@ -1,7 +1,7 @@
 ```@meta
-CurrentModule = BlackBoxModels
+CurrentModule = BBModels
 ```
 
-# BlackBoxModels
+# BBModels
 
-Documentation for [BlackBoxModels](https://github.com/JuliaSmoothOptimizers/BlackBoxModels.jl).
+Documentation for [BBModels](https://github.com/JuliaSmoothOptimizers/BBModels.jl).

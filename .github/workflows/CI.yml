@@ -55,9 +55,9 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using BlackBoxModels
-            DocMeta.setdocmeta!(BlackBoxModels, :DocTestSetup, :(using BlackBoxModels); recursive=true)
-            doctest(BlackBoxModels)'
+            using BBModels
+            DocMeta.setdocmeta!(BBModels, :DocTestSetup, :(using BBModels); recursive=true)
+            doctest(BBModels)'
       - run: julia --project=docs docs/make.jl
         env:
           JULIA_PKG_SERVER: ""

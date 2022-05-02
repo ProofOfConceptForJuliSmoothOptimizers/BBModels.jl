@@ -1,6 +1,6 @@
-using BlackBoxModels
+using BBModels
 using Test
 
-@testset "BlackBoxModels.jl" begin
+@testset "BBModels.jl" begin
   # Write your tests here.
 end
