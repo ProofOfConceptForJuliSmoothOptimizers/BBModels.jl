@@ -45,10 +45,11 @@ The following keyword arguments are accepted:
 - `name`: problem name
 """
 
-# TODO later
+# TODO: Create a Type for constraint vector (lcon ucon) (change the Float 64 vector to a parametric type)
 struct BBModelMeta{T, S} <: AbstractBBModelMeta{T, S}
   nvar::Int
   x0::S
+  x_n::Vector{Symbol}
   lvar::S
   uvar::S
 
@@ -64,8 +65,8 @@ struct BBModelMeta{T, S} <: AbstractBBModelMeta{T, S}
   nlvc::Int
 
   ncon::Int
-  lcon::S
-  ucon::S
+  lcon::Vector{Float64}
+  ucon::Vector{Float64}
 
   jfix::Vector{Int}
   jlow::Vector{Int}
@@ -93,14 +94,15 @@ struct BBModelMeta{T, S} <: AbstractBBModelMeta{T, S}
   function BBModelMeta{T, S}(
     nvar::Int,
     x0::S;
+    x_n::Vector{Symbol}=Symbol[Symbol("param_", i) for i in 1:nvar],
     lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
     uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
     nlvb = nvar,
     nlvo = nvar,
     nlvc = nvar,
     ncon = 0,
-    lcon::S = fill!(S(undef, ncon), T(-Inf)),
-    ucon::S = fill!(S(undef, ncon), T(Inf)),
+    lcon::Vector{Float64} = fill!(Vector{Float64}(undef, ncon), -Inf64),
+    ucon::Vector{Float64} = fill!(Vector{Float64}(undef, ncon), Inf64),
     lin = Int[],
     minimize = true,
     islp = false,
@@ -149,6 +151,7 @@ struct BBModelMeta{T, S} <: AbstractBBModelMeta{T, S}
     new{T, S}(
       nvar,
       x0,
+      x_n,
       lvar,
       uvar,
       ifix,

@@ -19,24 +19,50 @@ end
 
 NLPModels.show_header(io::IO, ::BBModel) = println(io, "BBModel - Black Box Optimization Model")
 
+# TODO: create a type for the constraints...
+function BBModel(x0::NamedTuple, solver_function::F1, auxiliary_function::F2, problems::Vector{M};
+  kwargs...
+  ) where {F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
+  x_n = collect(keys(x0))
+  T = Union{(typeof(tᵢ) for tᵢ in x0)...}
+  x0 = collect(T, x0)
+  kwargs = Dict(kwargs)
+  
+  if haskey(kwargs, :lvar)
+    lvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:lvar])]
+    delete!(kwargs, :lvar)
+  end
+  if haskey(kwargs, :uvar)
+    uvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:uvar])]
+    delete!(kwargs, :uvar)
+  end
+  
+  return BBModel(x0, solver_function, auxiliary_function, problems; x_n=x_n, lvar=lvar, uvar=uvar, kwargs...)
+  # return BBModel(collect(T, x0), solver_function, auxiliary_function, problems; x_n=x_n, lvar=lvar, uvar=uvar, lcon=lcon, ucon=ucon, kwargs...)
+end
+
 function BBModel(
   x0::S,
   solver_function::F1,
   auxiliary_function::F2,
   problems::Vector{M};
+  x_n::Vector{Symbol}=Symbol[Symbol("param_", i) for i in 1:length(x0)],
   lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
   uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
-  lcon::S = S(undef, 0),
-  ucon::S = S(undef, 0),
+  lcon::Vector{Float64} = Vector{Float64}(undef, 0),
+  ucon::Vector{Float64} = Vector{Float64}(undef, 0),
   name::String = "generic-BBModel",
-) where {T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function, M <: AbstractNLPModel{P}}
+) where {S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function, M <: AbstractNLPModel{P}}
   length(problems) > 0 || error("No problems given")
 
   nvar = length(x0)
   ncon = length(lcon)
+  lvar = convert(S, lvar)
+  uvar = convert(S, uvar)
   meta = BBModelMeta(
     nvar,
     x0,
+    x_n=x_n,
     lvar = lvar,
     uvar = uvar,
     ncon = ncon,
