@@ -94,7 +94,7 @@ struct BBModelMeta{T, S} <: AbstractBBModelMeta{T, S}
   function BBModelMeta{T, S}(
     nvar::Int,
     x0::S;
-    x_n::Vector{Symbol}=Symbol[Symbol("param_", i) for i in 1:nvar],
+    x_n::Vector{Symbol} = Symbol[Symbol("param_", i) for i = 1:nvar],
     lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
     uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
     nlvb = nvar,
@@ -143,7 +143,7 @@ struct BBModelMeta{T, S} <: AbstractBBModelMeta{T, S}
       jfree = Int[]
       jinf = Int[]
     end
-    
+
     nln = setdiff(1:ncon, lin)
     nlin = length(lin)
     nnln = length(nln)
@@ -188,7 +188,4 @@ struct BBModelMeta{T, S} <: AbstractBBModelMeta{T, S}
   end
 end
 
-BBModelMeta(nvar, x0::S; kwargs...) where {S} =
-  BBModelMeta{eltype(S), S}(nvar, x0; kwargs...)
-
-
+BBModelMeta(nvar, x0::S; kwargs...) where {S} = BBModelMeta{eltype(S), S}(nvar, x0; kwargs...)
