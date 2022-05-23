@@ -13,8 +13,15 @@ mutable struct BBModel{T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: 
   problems::Dict{Int, Problem{P}}
   bb_results::Vector{Vector{ProblemMetrics}}
 
-  function BBModel(meta::BBModelMeta{T,S}, counters::Counters, s_f::F1, a_f::F2, c::Function, problems::Dict{Int, Problem{P}}, bb_results::Vector{Vector{ProblemMetrics}}
-    ) where {T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function}
+  function BBModel(
+    meta::BBModelMeta{T, S},
+    counters::Counters,
+    s_f::F1,
+    a_f::F2,
+    c::Function,
+    problems::Dict{Int, Problem{P}},
+    bb_results::Vector{Vector{ProblemMetrics}},
+  ) where {T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function}
     new{T, S, P, F1, F2}(meta, counters, s_f, a_f, c, problems, bb_results)
   end
 end
@@ -71,28 +78,37 @@ function BBModel(
   nvar = length(x0)
   lvar = convert(S, lvar)
   uvar = convert(S, uvar)
-  meta = BBModelMeta(
-    nvar,
-    x0,
-    x_n=x_n,
-    lvar = lvar,
-    uvar = uvar,
-    minimize = true,
-    name = name,
+  meta = BBModelMeta(nvar, x0, x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
+  bb_results = bb_results = [Vector{ProblemMetrics}() for _ = 1:length(problems)]
+  problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
+
+  return BBModel(
+    meta,
+    Counters(),
+    solver_function,
+    auxiliary_function,
+    x -> Float64[],
+    problems,
+    bb_results,
   )
-  bb_results = bb_results = [Vector{ProblemMetrics}() for _ in 1:length(problems)]
-  problems = Dict{Int,Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
-  
-  return BBModel(meta, Counters(), solver_function, auxiliary_function, x -> Float64[], problems, bb_results)
 end
 
 # Constructor with constraints
-function BBModel(x0::NamedTuple, solver_function::F1, auxiliary_function::F2, c, lcon::Vector{Float64}, ucon::Vector{Float64}, problems::Vector{M}; kwargs...) where {F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
+function BBModel(
+  x0::NamedTuple,
+  solver_function::F1,
+  auxiliary_function::F2,
+  c,
+  lcon::Vector{Float64},
+  ucon::Vector{Float64},
+  problems::Vector{M};
+  kwargs...,
+) where {F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   x_n = collect(keys(x0))
   T = Union{(typeof(tᵢ) for tᵢ in x0)...}
   x0 = collect(T, x0)
   kwargs = Dict(kwargs)
-  
+
   if haskey(kwargs, :lvar)
     lvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:lvar])]
     delete!(kwargs, :lvar)
@@ -102,7 +118,19 @@ function BBModel(x0::NamedTuple, solver_function::F1, auxiliary_function::F2, c,
     delete!(kwargs, :uvar)
   end
 
-  return BBModel(x0, solver_function, auxiliary_function, c, lcon, ucon, problems; x_n=x_n, lvar=lvar, uvar=uvar, kwargs...)
+  return BBModel(
+    x0,
+    solver_function,
+    auxiliary_function,
+    c,
+    lcon,
+    ucon,
+    problems;
+    x_n = x_n,
+    lvar = lvar,
+    uvar = uvar,
+    kwargs...,
+  )
 end
 
 function BBModel(
@@ -113,7 +141,7 @@ function BBModel(
   lcon::Vector{Float64},
   ucon::Vector{Float64},
   problems::Vector{M};
-  x_n::Vector{Symbol}=Symbol[Symbol("param_", i) for i in 1:length(x0)],
+  x_n::Vector{Symbol} = Symbol[Symbol("param_", i) for i = 1:length(x0)],
   lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
   uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
   name::String = "generic-BBModel",
@@ -139,9 +167,9 @@ function BBModel(
     minimize = true,
     name = name,
   )
-  bb_results = bb_results = [Vector{ProblemMetrics}() for _ in 1:length(problems)]
-  problems = Dict{Int,Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
-  
+  bb_results = bb_results = [Vector{ProblemMetrics}() for _ = 1:length(problems)]
+  problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
+
   return BBModel(meta, Counters(), solver_function, auxiliary_function, c, problems, bb_results)
 end
 
