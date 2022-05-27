@@ -11,7 +11,6 @@ mutable struct BBModel{T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: 
   c
 
   problems::Dict{Int, Problem{P}}
-  bb_results::Vector{Vector{ProblemMetrics}}
 
   function BBModel(
     meta::BBModelMeta{T, S},
@@ -20,9 +19,8 @@ mutable struct BBModel{T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: 
     a_f::F2,
     c::Function,
     problems::Dict{Int, Problem{P}},
-    bb_results::Vector{Vector{ProblemMetrics}},
   ) where {T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function}
-    new{T, S, P, F1, F2}(meta, counters, s_f, a_f, c, problems, bb_results)
+    new{T, S, P, F1, F2}(meta, counters, s_f, a_f, c, problems)
   end
 end
 
@@ -79,7 +77,6 @@ function BBModel(
   lvar = convert(S, lvar)
   uvar = convert(S, uvar)
   meta = BBModelMeta(nvar, x0, x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
-  bb_results = bb_results = [Vector{ProblemMetrics}() for _ = 1:length(problems)]
   problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
 
   return BBModel(
@@ -89,7 +86,6 @@ function BBModel(
     auxiliary_function,
     x -> Float64[],
     problems,
-    bb_results,
   )
 end
 
@@ -167,10 +163,9 @@ function BBModel(
     minimize = true,
     name = name,
   )
-  bb_results = bb_results = [Vector{ProblemMetrics}() for _ = 1:length(problems)]
   problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
 
-  return BBModel(meta, Counters(), solver_function, auxiliary_function, c, problems, bb_results)
+  return BBModel(meta, Counters(), solver_function, auxiliary_function, c, problems)
 end
 
 # By default, this function will return the time in seconds
@@ -206,17 +201,9 @@ function obj!(nlp::BBModel{T, S, P}, v::S, p::Problem{P}) where {T, S, P}
   solved = !is_failure(stat)
   counters = deepcopy(nlp_to_solve.counters)
   p_metric = ProblemMetrics(get_id(p), times, memory, solved, counters)
-
   reset!(nlp_to_solve)
-  update_problem_weight!(nlp, p_metric)
-  push!(nlp.bb_results[get_pb_id(p_metric)], p_metric)
-  return auxiliary_function(p_metric)
-end
 
-function update_problem_weight!(nlp::BBModel, p_metric::ProblemMetrics)
-  problems = nlp.problems
-  p = problems[get_pb_id(p_metric)]
-  p.weight += median(get_times(p_metric))
+  return auxiliary_function(p_metric), p_metric
 end
 
 # NLPModels functions to overload:
@@ -246,7 +233,6 @@ function NLPModels.reset_data!(nlp::BBModel)
   for p ∈ problem_collection
     reset!(p)
   end
-  empty!(nlp.bb_results)
 
   return nlp
 end
