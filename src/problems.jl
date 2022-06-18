@@ -19,7 +19,7 @@ mutable struct Problem{T, S}
   end
 end
 
-Problem(id::Int, nlp::AbstractNLPModel{T, S}) where {T, S} = Problem(id, nlp, eps(T))
+Problem(id::Int, nlp::AbstractNLPModel) = Problem(id, nlp, eps(Float64))
 
 get_nlp(p::Problem{T}) where {T <: Real} = p.nlp
 get_id(p::Problem{T}) where {T <: Real} = p.id

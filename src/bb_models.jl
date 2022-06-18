@@ -77,7 +77,7 @@ function BBModel(
   lvar = convert(S, lvar)
   uvar = convert(S, uvar)
   meta = BBModelMeta(nvar, x0, x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
-  problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
+  problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
   return BBModel(
     meta,
