@@ -2,7 +2,7 @@ export AbstractBBModel, BBModel, obj, obj!
 
 abstract type AbstractBBModel{T, S} <: AbstractNLPModel{T, S} end
 
-mutable struct BBModel{T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function} <:
+mutable struct BBModel{T, S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function} <:
                AbstractBBModel{T, S}
   meta::BBModelMeta{T, S}
   counters::Counters
@@ -10,7 +10,7 @@ mutable struct BBModel{T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: 
   auxiliary_function::F2
   c
 
-  problems::Dict{Int, Problem{P}}
+  problems::Dict{Int, Problem}
 
   function BBModel(
     meta::BBModelMeta{T, S},
@@ -18,9 +18,9 @@ mutable struct BBModel{T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: 
     s_f::F1,
     a_f::F2,
     c::Function,
-    problems::Dict{Int, Problem{P}},
-  ) where {T, S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function}
-    new{T, S, P, F1, F2}(meta, counters, s_f, a_f, c, problems)
+    problems::Dict{Int, Problem},
+  ) where {T, S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function}
+    new{T, S, F1, F2}(meta, counters, s_f, a_f, c, problems)
   end
 end
 
@@ -70,14 +70,14 @@ function BBModel(
   lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
   uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
   name::String = "generic-BBModel",
-) where {S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function, M <: AbstractNLPModel{P}}
+) where {S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   length(problems) > 0 || error("No problems given")
 
   nvar = length(x0)
   lvar = convert(S, lvar)
   uvar = convert(S, uvar)
   meta = BBModelMeta(nvar, x0, x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
-  problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
+  problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
   return BBModel(
     meta,
@@ -141,7 +141,7 @@ function BBModel(
   lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
   uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
   name::String = "generic-BBModel",
-) where {S <: AbstractVector{<:Real}, P, F1 <: Function, F2 <: Function, M <: AbstractNLPModel{P}}
+) where {S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   length(problems) > 0 || error("No problems given")
 
   nvar = length(x0)
@@ -163,7 +163,7 @@ function BBModel(
     minimize = true,
     name = name,
   )
-  problems = Dict{Int, Problem{P}}(id => Problem(id, p, eps(P)) for (id, p) ∈ enumerate(problems))
+  problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
   return BBModel(meta, Counters(), solver_function, auxiliary_function, c, problems)
 end
@@ -185,7 +185,7 @@ function NLPModels.obj(nlp::BBModel{T, S}, x::S) where {T, S}
 end
 
 # Function to use for NOMAD: assumes that an interface will sanitize Nomad's output
-function obj!(nlp::BBModel{T, S, P}, v::S, p::Problem{P}) where {T, S, P}
+function obj!(nlp::BBModel{T, S}, v::S, p::Problem) where {T, S}
   haskey(nlp.problems, get_id(p)) || error("Problem could not be found in problem set")
 
   solver_function = nlp.solver_function
