@@ -13,7 +13,7 @@ mutable struct Problem
   id::Int
   nlp::AbstractNLPModel
   weight::Float64
-  function Problem(id::Int, nlp::AbstractNLPModel, weight::Float64) 
+  function Problem(id::Int, nlp::AbstractNLPModel, weight::Float64)
     weight ≥ 0 || error("weight of a problem should be greater or equal to 0")
     new(id, nlp, weight)
   end
@@ -21,7 +21,7 @@ end
 
 Problem(id::Int, nlp::AbstractNLPModel) = Problem(id, nlp, eps(Float64))
 
-get_nlp(p::Problem)  = p.nlp
+get_nlp(p::Problem) = p.nlp
 get_id(p::Problem) = p.id
 
 struct ProblemMetrics

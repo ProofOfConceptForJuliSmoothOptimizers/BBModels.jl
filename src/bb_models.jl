@@ -77,16 +77,10 @@ function BBModel(
   lvar = convert(S, lvar)
   uvar = convert(S, uvar)
   meta = BBModelMeta(nvar, x0, x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
-  problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
+  problems =
+    Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
-  return BBModel(
-    meta,
-    Counters(),
-    solver_function,
-    auxiliary_function,
-    x -> Float64[],
-    problems,
-  )
+  return BBModel(meta, Counters(), solver_function, auxiliary_function, x -> Float64[], problems)
 end
 
 # Constructor with constraints
@@ -163,7 +157,8 @@ function BBModel(
     minimize = true,
     name = name,
   )
-  problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
+  problems =
+    Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
   return BBModel(meta, Counters(), solver_function, auxiliary_function, c, problems)
 end
