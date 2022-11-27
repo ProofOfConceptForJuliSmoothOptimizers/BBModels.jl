@@ -1,8 +1,3 @@
-# export BlackBoxException
-
-# struct BlackBoxException <: Exception
-#     msg::String
-# end
 function is_failure(stats::AbstractExecutionStats)
   failure_status = [:exception, :infeasible, :max_eval, :max_iter, :max_time, :stalled, :neg_pred]
   return any(s -> s == stats.status, failure_status)

@@ -38,25 +38,23 @@ function BBModel(
   T = Union{(typeof(tᵢ) for tᵢ in x0)...}
   x0 = collect(T, x0)
   kwargs = Dict(kwargs)
+  new_kwargs = Dict{Symbol, Vector{T}}()
 
   if haskey(kwargs, :lvar)
     lvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:lvar])]
-    delete!(kwargs, :lvar)
+    new_kwargs[:lvar] = lvar
   end
   if haskey(kwargs, :uvar)
     uvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:uvar])]
-    delete!(kwargs, :uvar)
+    new_kwargs[:uvar] = uvar
   end
-
   return BBModel(
     x0,
     solver_function,
     auxiliary_function,
     problems;
     x_n = x_n,
-    lvar = lvar,
-    uvar = uvar,
-    kwargs...,
+    new_kwargs...,
   )
   # return BBModel(collect(T, x0), solver_function, auxiliary_function, problems; x_n=x_n, lvar=lvar, uvar=uvar, lcon=lcon, ucon=ucon, kwargs...)
 end
@@ -76,7 +74,7 @@ function BBModel(
   nvar = length(x0)
   lvar = convert(S, lvar)
   uvar = convert(S, uvar)
-  meta = BBModelMeta(nvar, x0, x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
+  meta = BBModelMeta(nvar, x0; x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
   problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
   return BBModel(

@@ -38,8 +38,6 @@ struct ProblemMetrics
     solved::Bool,
     counters::Counters,
   )
-    times ./= 1.0e9
-    memory = round(Int, memory / 1.0e6)
     new(id, times, memory, solved, counters)
   end
 end
