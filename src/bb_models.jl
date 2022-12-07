@@ -2,116 +2,95 @@ export AbstractBBModel, BBModel, obj, obj!
 
 abstract type AbstractBBModel{T, S} <: AbstractNLPModel{T, S} end
 
-mutable struct BBModel{T, S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function} <:
-               AbstractBBModel{T, S}
-  meta::BBModelMeta{T, S}
+mutable struct BBModel{F1 <: Function, F2 <: Function, P <: AbstractParameterSet} <:
+               AbstractBBModel{Float64, Vector{Float64}}
+  bb_meta::BBModelMeta
+  meta::NLPModelMeta
   counters::Counters
   solver_function::F1
   auxiliary_function::F2
   c
-
   problems::Dict{Int, Problem}
-
-  function BBModel(
-    meta::BBModelMeta{T, S},
-    counters::Counters,
-    s_f::F1,
-    a_f::F2,
-    c::Function,
-    problems::Dict{Int, Problem},
-  ) where {T, S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function}
-    new{T, S, F1, F2}(meta, counters, s_f, a_f, c, problems)
-  end
+  parameter_set::P
 end
 
 NLPModels.show_header(io::IO, ::BBModel) = println(io, "BBModel - Black Box Optimization Model")
 
-# TODO: create a type for the constraints...
 function BBModel(
-  x0::NamedTuple,
+  parameter_set::P,
   solver_function::F1,
   auxiliary_function::F2,
   problems::Vector{M};
+  lvar=lower_bounds(parameter_set),
+  uvar=upper_bounds(parameter_set),
   kwargs...,
-) where {F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
-  x_n = collect(keys(x0))
-  T = Union{(typeof(tᵢ) for tᵢ in x0)...}
-  x0 = collect(T, x0)
-  kwargs = Dict(kwargs)
-  new_kwargs = Dict{Symbol, Vector{T}}()
-
-  if haskey(kwargs, :lvar)
-    lvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:lvar])]
-    new_kwargs[:lvar] = lvar
-  end
-  if haskey(kwargs, :uvar)
-    uvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:uvar])]
-    new_kwargs[:uvar] = uvar
-  end
+) where {P <: AbstractParameterSet, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
+  x_n = names(parameter_set)
   return BBModel(
-    x0,
+    values(parameter_set),
     solver_function,
     auxiliary_function,
-    problems;
-    x_n = x_n,
-    new_kwargs...,
+    problems,
+    parameter_set,
+    x_n,
+    lvar,
+    uvar;
+    kwargs...
   )
-  # return BBModel(collect(T, x0), solver_function, auxiliary_function, problems; x_n=x_n, lvar=lvar, uvar=uvar, lcon=lcon, ucon=ucon, kwargs...)
 end
 
 function BBModel(
-  x0::S,
+  x0::AbstractVector,
   solver_function::F1,
   auxiliary_function::F2,
-  problems::Vector{M};
-  x_n::Vector{Symbol} = Symbol[Symbol("param_", i) for i = 1:length(x0)],
-  lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
-  uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
+  problems::Vector{M},
+  parameter_set::P,
+  x_n::Vector{String},
+  lvar::AbstractVector,
+  uvar::AbstractVector;
   name::String = "generic-BBModel",
-) where {S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
+) where {P <: AbstractParameterSet, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   length(problems) > 0 || error("No problems given")
-
   nvar = length(x0)
-  lvar = convert(S, lvar)
-  uvar = convert(S, uvar)
-  meta = BBModelMeta(nvar, x0; x_n = x_n, lvar = lvar, uvar = uvar, minimize = true, name = name)
+  bbmeta = BBModelMeta(
+    nvar,
+    x0,
+    x_n,
+    lvar,
+    uvar;
+  )
+  meta_x0 = Vector{Float64}([Float64(i) for i in x0])
+  meta_lvar = Vector{Float64}([Float64(i) for i in lvar])
+  meta_uvar = Vector{Float64}([Float64(i) for i in uvar])
+  meta = NLPModelMeta(nvar; x0=meta_x0, lvar=meta_lvar, uvar=meta_uvar, name=name)
   problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
-
   return BBModel(
+    bbmeta,
     meta,
     Counters(),
     solver_function,
     auxiliary_function,
     x -> Float64[],
     problems,
+    parameter_set
   )
 end
 
 # Constructor with constraints
 function BBModel(
-  x0::NamedTuple,
+  parameter_set::P,
   solver_function::F1,
   auxiliary_function::F2,
-  c,
+  c::Function,
   lcon::Vector{Float64},
   ucon::Vector{Float64},
   problems::Vector{M};
+  lvar=lower_bounds(parameter_set),
+  uvar=upper_bounds(parameter_set),
   kwargs...,
-) where {F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
-  x_n = collect(keys(x0))
-  T = Union{(typeof(tᵢ) for tᵢ in x0)...}
-  x0 = collect(T, x0)
-  kwargs = Dict(kwargs)
-
-  if haskey(kwargs, :lvar)
-    lvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:lvar])]
-    delete!(kwargs, :lvar)
-  end
-  if haskey(kwargs, :uvar)
-    uvar = T[convert(x_tᵢ, l) for (x_tᵢ, l) in zip((typeof(x0ᵢ) for x0ᵢ in x0), kwargs[:uvar])]
-    delete!(kwargs, :uvar)
-  end
-
+) where {P <: AbstractParameterSet, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
+  x_n = names(parameter_set)
+  x0 = values(parameter_set)
   return BBModel(
     x0,
     solver_function,
@@ -119,55 +98,47 @@ function BBModel(
     c,
     lcon,
     ucon,
-    problems;
-    x_n = x_n,
-    lvar = lvar,
-    uvar = uvar,
+    problems,
+    parameter_set,
+    x_n,
+    lvar,
+    uvar;
     kwargs...,
   )
 end
 
 function BBModel(
-  x0::S,
+  x0::AbstractVector,
   solver_function::F1,
   auxiliary_function::F2,
   c::Function,
   lcon::Vector{Float64},
   ucon::Vector{Float64},
-  problems::Vector{M};
-  x_n::Vector{Symbol} = Symbol[Symbol("param_", i) for i = 1:length(x0)],
-  lvar::S = eltype(S)[typemin(typeof(x0ᵢ)) for x0ᵢ in x0],
-  uvar::S = eltype(S)[typemax(typeof(x0ᵢ)) for x0ᵢ in x0],
+  problems::Vector{M},
+  parameter_set::P,
+  x_n::Vector{String},
+  lvar::AbstractVector,
+  uvar::AbstractVector;
   name::String = "generic-BBModel",
-) where {S <: AbstractVector{<:Real}, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
+) where {P <: AbstractParameterSet, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   length(problems) > 0 || error("No problems given")
-
+  @lencheck ncon ucon lcon
   nvar = length(x0)
-  ncon = length(lcon)
-  lvar = convert(S, lvar)
-  uvar = convert(S, uvar)
-  @lencheck nvar x0
-  @lencheck ncon ucon
-
-  meta = BBModelMeta(
+  bbmeta = BBModelMeta(
     nvar,
     x0,
-    x_n = x_n,
-    lvar = lvar,
-    uvar = uvar,
-    ncon = ncon,
-    lcon = lcon,
-    ucon = ucon,
-    minimize = true,
-    name = name,
+    x_n,
+    lvar,
+    uvar;
   )
+  meta = NLPModelMeta(nvar; x0=Vector{Float64}([Float64(i) for i in x0]), lvar=lvar, uvar=uvar, name=name)
   problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
-  return BBModel(meta, Counters(), solver_function, auxiliary_function, c, problems)
+  return BBModel(bbmeta, meta, Counters(), solver_function, auxiliary_function, c, problems, parameter_set)
 end
 
 # By default, this function will return the time in seconds
-function NLPModels.obj(nlp::BBModel{T, S}, x::S) where {T, S}
+function NLPModels.obj(nlp::BBModel, x::Vector{Float64})  
   problems = nlp.problems
   solver_function = nlp.solver_function
   total_time = 0.0
@@ -183,16 +154,17 @@ function NLPModels.obj(nlp::BBModel{T, S}, x::S) where {T, S}
 end
 
 # Function to use for NOMAD: assumes that an interface will sanitize Nomad's output
-function obj!(nlp::BBModel{T, S}, v::S, p::Problem) where {T, S}
+function obj!(nlp::BBModel, v::Vector{Float64}, p::Problem)  
   haskey(nlp.problems, get_id(p)) || error("Problem could not be found in problem set")
 
   solver_function = nlp.solver_function
   auxiliary_function = nlp.auxiliary_function
   nlp_to_solve = get_nlp(p)
-  x = (; zip(nlp.meta.x_n, v)...)
-
+  # Update parameter values with the ones found by NOMAD.
+  param_set = nlp.parameter_set 
+  update!(param_set, v)
   bmark_result, stat =
-    @benchmark_with_result $solver_function($nlp_to_solve, $x) seconds = 10 samples = 5 evals = 1
+    @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = 10 samples = 5 evals = 1
   times = bmark_result.times
   normalize_times!(times)
   memory = bmark_result.memory

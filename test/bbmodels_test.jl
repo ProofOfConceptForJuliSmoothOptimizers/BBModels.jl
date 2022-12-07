@@ -11,6 +11,7 @@ function aux_func(p_metric::ProblemMetrics)
 end
 
 @testset "Testing BBModels core functions" verbose=true begin
+  # TODO use SR2 param struct to test
   x = (mem=5, scaling=true, τ₁=T(0.999), bk_max=20)
   nlp = BBModel(x, solver_func, aux_func, problems)
   lvar = Real[1, false, T(0.0), 10]

@@ -12,6 +12,8 @@ import BenchmarkTools.Benchmark
 import BenchmarkTools.Parameters
 import BenchmarkTools.run_result
 
+using SolverParameters
+
 include("utils.jl")
 include("benchmark_macros.jl")
 include("problems.jl")
