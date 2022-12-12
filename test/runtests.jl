@@ -5,6 +5,7 @@ using ADNLPModels
 using OptimizationProblems, OptimizationProblems.ADNLPProblems
 using JSOSolvers
 using Test
+using SolverParameters
 
 T = Float64
 n = 5
@@ -13,6 +14,7 @@ problems = Iterators.filter(p -> unconstrained(p) &&  1 ≤ get_nvar(p) ≤ 100 
 problems = collect(problems)
 
 @testset "BBModels.jl" verbose=true begin
+  include("param_structs.jl")
   include("test_utils.jl")
   include("benchmark_macros_test.jl")
   include("bbmodels_test.jl")

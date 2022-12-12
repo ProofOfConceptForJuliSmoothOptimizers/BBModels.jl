@@ -142,15 +142,11 @@ function NLPModels.obj(nlp::BBModel, x::Vector{Float64})
   problems = nlp.problems
   solver_function = nlp.solver_function
   total_time = 0.0
-  try
-    for problem in problems
-      total_time += @elapsed solver_function(get_nlp(problem), x)
-    end
-    return total_time
-  catch e
-    @error "The following error has occured while evaluating the black box: $e"
-    return Inf
+  for (pb_id, problem) in problems
+    total_time += @elapsed solver_function(get_nlp(problem), x)
   end
+
+  return total_time
 end
 
 # Function to use for NOMAD: assumes that an interface will sanitize Nomad's output

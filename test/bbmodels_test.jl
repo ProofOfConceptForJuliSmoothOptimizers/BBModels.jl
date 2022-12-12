@@ -1,5 +1,7 @@
-function solver_func(nlp::AbstractNLPModel, p::NamedTuple)
-  return lbfgs(nlp; verbose=0, max_time=60.0)
+# TODO: create a function that calls a solver
+function solver_func(nlp::AbstractNLPModel, p::AbstractVector)
+  @info "problem name: $(get_name(nlp))"
+  @info "bbmodel vector: $p"
 end
 
 function aux_func(p_metric::ProblemMetrics)
@@ -10,18 +12,31 @@ function aux_func(p_metric::ProblemMetrics)
   return median_time + memory + counters.neval_obj + (Float64(!solved) * 5.0 * median_time)
 end
 
-@testset "Testing BBModels core functions" verbose=true begin
-  # TODO use SR2 param struct to test
-  x = (mem=5, scaling=true, τ₁=T(0.999), bk_max=20)
-  nlp = BBModel(x, solver_func, aux_func, problems)
-  lvar = Real[1, false, T(0.0), 10]
-  uvar = Real[100, true, T(0.9999), 30]
-  
-  @test eltype(nlp.meta.x0) == Union{(typeof(xᵢ) for xᵢ in x)...}
+@testset "Testing BBModels" verbose=true begin
+  T = Float64
+  I = Int64
+  B = Bool
+  param_set = R2ParameterSet{T,I,B}()
+  nlp = BBModel(param_set, solver_func, aux_func, problems)
 
-  nlp = BBModel(x, solver_func, aux_func, problems;lvar=lvar, uvar=uvar)
+  @testset "Test BBModels attributes" verbose=true begin
+    x = nlp.bb_meta.x0
+    x_n = nlp.bb_meta.x_n
+    lvar = nlp.bb_meta.lvar
+    uvar = nlp.bb_meta.uvar
+    iint = nlp.bb_meta.iint
+    ifloat = nlp.bb_meta.ifloat
+    ibool = nlp.bb_meta.ibool
+    @test x == values(nlp.parameter_set)
+    @test x_n == [string(i) for i in fieldnames(typeof(nlp.parameter_set))]
+    @test lvar == lower_bounds(nlp.parameter_set)
+    @test uvar == upper_bounds(nlp.parameter_set)
+    @test iint == Int[9]
+    @test ifloat == Int[i for i in 1:8]
+    @test ibool == Int[10]
+  end
 
-  @test [typeof(l) for l in nlp.meta.lvar] == [Int, Bool, T, Int]
-  @test [typeof(l) for l in nlp.meta.uvar] == [Int, Bool, T, Int]
-
+  @testset "Test `obj` method with BBModel" verbose=true begin
+    @test obj(nlp, nlp.bb_meta.x0) ≥ 0.0
+  end
 end
