@@ -1,5 +1,9 @@
 export BBModelMeta
 
+"""BBModelMeta:
+Struct containing the necessary information of black box optimization problem.
+Similar to `NLPModels.NLPModelMeta`, this struct keeps track of the types of variables (i.e, continuous, discrete and binary).
+"""
 struct BBModelMeta
   nvar::Int
   x0::Vector{Float64}

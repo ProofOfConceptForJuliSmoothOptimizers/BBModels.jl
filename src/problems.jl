@@ -9,7 +9,10 @@ export Problem,
   get_solved,
   get_counters
 
-mutable struct Problem
+"""Mutable struct encapsulating a NLPModel.
+The goal is to keep track of an instance of an `AbstractNLPModel` in a distributed context by giving each instance an `id` and a `weight`.
+"""
+  mutable struct Problem
   id::Int
   nlp::AbstractNLPModel
   weight::Float64
@@ -19,11 +22,24 @@ mutable struct Problem
   end
 end
 
+"""Constructor of a `Problem`. Takes an id and an `AbstractNLPModel`."""
 Problem(id::Int, nlp::AbstractNLPModel) = Problem(id, nlp, eps(Float64))
 
+"""Returns the `AbstractNLPModel` of a `Problem`."""
 get_nlp(p::Problem)  = p.nlp
+
+"""Returns the id of a `Problem`."""
 get_id(p::Problem) = p.id
 
+"""Struct that contains metrics of a given `AbstractNLPModel`.
+The goal is to measure the performance of an arbitrary solver solving a particular `AbstractNLPModel`.
+The following metrics are stored:
+
+1. times → Execution time of one or many attempts of solving the nlp.
+2. memory → Memory allocated to solve the nlp.
+3. solved → Status of the nlp after solve. this attribute is `true` if nlp is solved and `false` otherwise.
+4. Counters → Struct containing counters to the evaluations of certain methods related to the nlp (e.g, number of evaluations of the objective).
+""" 
 struct ProblemMetrics
   pb_id::Int
   times::Vector{Float64}
@@ -45,8 +61,17 @@ end
 ProblemMetrics(id::Int64, t::Tuple{Vector{Float64}, Int64, Bool, Counters}) =
   ProblemMetrics(id, t...)
 
+"""Returns the id of the problem linked to this `ProblemMetrics` instance."""
 get_pb_id(p::ProblemMetrics) = p.pb_id
+
+"""Returns the times required to solve the problem linked to this `ProblemMetrics` instance."""
 get_times(p::ProblemMetrics) = p.times
+
+"""Returns the memory allocated to solve the problem linked to this `ProblemMetrics` instance."""
 get_memory(p::ProblemMetrics) = p.memory
+
+"""Returns the problem linked to this `ProblemMetrics` instance is solved."""
 get_solved(p::ProblemMetrics) = p.solved
+
+"""Returns the Counters related the problem linked to this `ProblemMetrics` instance."""
 get_counters(p::ProblemMetrics) = p.counters

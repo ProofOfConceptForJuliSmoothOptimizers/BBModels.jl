@@ -2,6 +2,31 @@ export AbstractBBModel, BBModel, obj, obj!
 
 abstract type AbstractBBModel{T, S} <: AbstractNLPModel{T, S} end
 
+"""Mutable struct BBModel
+
+Represents a black box optimization problem that follows the api described in `NLPModels`.
+
+`solver_function` is a function that takes an `AbstractNLPModel` and a `AbstractParameterSet` and runs a solver with thise two inputs.
+
+  Ex: ```julia
+  solver_function(nlp::AbstractNLPModel, p::AbstractParameterSet) = solve!(nlp, p;)  
+  ```
+`auxiliary_function` is a function that takes `ProblemMetrics` as a parameter and return a `Vector{Float64}`.
+  This function is the objective function that needs to be minimized/maximized as it represents how well your solver performed while solving a given problem.
+    Ex: ```julia
+    function aux_func(p_metric::ProblemMetrics)
+      T = Float64
+      median_time = T(median(get_times(p_metric)))
+      memory = T(get_memory(p_metric))
+      is_not_solved = T(!get_solved(p_metric))
+      counters = get_counters(p_metric)
+      return T[median_time + memory + T(counters.neval_obj) + (is_not_solved * median_time)]
+    end
+    ``` 
+  `c` is a function returning a `Vector{Float64}` that represents the constraints of the problem.
+  `problems` is a dictionary containing `AbstractNLPModels` to solve using the `solver_function` method.
+  `parameter_set` is the `AbstractParameterSet` of a given solver.
+"""
 mutable struct BBModel{F1 <: Function, F2 <: Function, P <: AbstractParameterSet} <:
                AbstractBBModel{Float64, Vector{Float64}}
   bb_meta::BBModelMeta
