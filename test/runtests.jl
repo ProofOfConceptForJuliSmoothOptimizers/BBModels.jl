@@ -9,7 +9,7 @@ using SolverParameters
 
 T = Float64
 n = 5
-problems = (eval(p)(type=Val(T)) for (_,p) ∈ zip(1:n,filter(x -> x != :ADNLPProblems && x != :scosine, names(OptimizationProblems.ADNLPProblems))))
+problems = (eval(p)(type=Val(T)) for (_,p) ∈ zip(1:n,filter(x -> x != :ADNLPProblems, names(OptimizationProblems.ADNLPProblems))))
 problems = Iterators.filter(p -> unconstrained(p) &&  1 ≤ get_nvar(p) ≤ 100 && get_minimize(p), problems)
 problems = collect(problems)
 
