@@ -1,5 +1,6 @@
 module BBModels
 
+# TODO: keep this until the SolverParameters is registered
 using Statistics
 
 using LinearOperators, NLPModels, NLPModelsModifiers, SolverCore
