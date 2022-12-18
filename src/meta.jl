@@ -10,7 +10,7 @@ struct BBModelMeta
   x_n::Vector{String}
   lvar::Vector{Float64}
   uvar::Vector{Float64}
-  iint::Vector{Int} 
+  iint::Vector{Int}
   ifloat::Vector{Int}
   ibool::Vector{Int}
 
@@ -26,7 +26,7 @@ struct BBModelMeta
     uvar::AbstractVector;
     ncon = 0,
     lcon::Vector{Float64} = fill!(Vector{Float64}(undef, ncon), -Inf64),
-    ucon::Vector{Float64} = fill!(Vector{Float64}(undef, ncon), Inf64)
+    ucon::Vector{Float64} = fill!(Vector{Float64}(undef, ncon), Inf64),
   )
     if (nvar < 1) || (ncon < 0)
       error("Nonsensical dimensions")
@@ -43,18 +43,6 @@ struct BBModelMeta
     lvar = Vector{S}([S(i) for i in lvar])
     uvar = Vector{S}([S(i) for i in uvar])
 
-    new(
-      nvar,
-      x0,
-      x_n,
-      lvar,
-      uvar,
-      iint,
-      ifloat,
-      ibool,
-      ncon,
-      lcon,
-      ucon
-    )
+    new(nvar, x0, x_n, lvar, uvar, iint, ifloat, ibool, ncon, lcon, ucon)
   end
 end

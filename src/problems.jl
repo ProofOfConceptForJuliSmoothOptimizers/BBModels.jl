@@ -12,11 +12,11 @@ export Problem,
 """Mutable struct encapsulating a NLPModel.
 The goal is to keep track of an instance of an `AbstractNLPModel` in a distributed context by giving each instance an `id` and a `weight`.
 """
-  mutable struct Problem
+mutable struct Problem
   id::Int
   nlp::AbstractNLPModel
   weight::Float64
-  function Problem(id::Int, nlp::AbstractNLPModel, weight::Float64) 
+  function Problem(id::Int, nlp::AbstractNLPModel, weight::Float64)
     weight ≥ 0 || error("weight of a problem should be greater or equal to 0")
     new(id, nlp, weight)
   end
@@ -26,7 +26,7 @@ end
 Problem(id::Int, nlp::AbstractNLPModel) = Problem(id, nlp, eps(Float64))
 
 """Returns the `AbstractNLPModel` of a `Problem`."""
-get_nlp(p::Problem)  = p.nlp
+get_nlp(p::Problem) = p.nlp
 
 """Returns the id of a `Problem`."""
 get_id(p::Problem) = p.id
@@ -39,7 +39,7 @@ The following metrics are stored:
 2. memory → Memory allocated to solve the nlp.
 3. solved → Status of the nlp after solve. this attribute is `true` if nlp is solved and `false` otherwise.
 4. Counters → Struct containing counters to the evaluations of certain methods related to the nlp (e.g, number of evaluations of the objective).
-""" 
+"""
 struct ProblemMetrics
   pb_id::Int
   times::Vector{Float64}

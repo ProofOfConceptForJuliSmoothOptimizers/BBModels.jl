@@ -46,8 +46,8 @@ function BBModel(
   solver_function::F1,
   auxiliary_function::F2,
   problems::Vector{M};
-  lvar=lower_bounds(parameter_set),
-  uvar=upper_bounds(parameter_set),
+  lvar = lower_bounds(parameter_set),
+  uvar = upper_bounds(parameter_set),
   kwargs...,
 ) where {P <: AbstractParameterSet, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   x_n = names(parameter_set)
@@ -60,7 +60,7 @@ function BBModel(
     x_n,
     lvar,
     uvar;
-    kwargs...
+    kwargs...,
   )
 end
 
@@ -77,18 +77,13 @@ function BBModel(
 ) where {P <: AbstractParameterSet, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   length(problems) > 0 || error("No problems given")
   nvar = length(x0)
-  bbmeta = BBModelMeta(
-    nvar,
-    x0,
-    x_n,
-    lvar,
-    uvar;
-  )
+  bbmeta = BBModelMeta(nvar, x0, x_n, lvar, uvar;)
   meta_x0 = Vector{Float64}([Float64(i) for i in x0])
   meta_lvar = Vector{Float64}([Float64(i) for i in lvar])
   meta_uvar = Vector{Float64}([Float64(i) for i in uvar])
-  meta = NLPModelMeta(nvar; x0=meta_x0, lvar=meta_lvar, uvar=meta_uvar, name=name)
-  problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
+  meta = NLPModelMeta(nvar; x0 = meta_x0, lvar = meta_lvar, uvar = meta_uvar, name = name)
+  problems =
+    Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
   return BBModel(
     bbmeta,
     meta,
@@ -97,7 +92,7 @@ function BBModel(
     auxiliary_function,
     x -> Float64[],
     problems,
-    parameter_set
+    parameter_set,
   )
 end
 
@@ -110,8 +105,8 @@ function BBModel(
   lcon::Vector{Float64},
   ucon::Vector{Float64},
   problems::Vector{M};
-  lvar=lower_bounds(parameter_set),
-  uvar=upper_bounds(parameter_set),
+  lvar = lower_bounds(parameter_set),
+  uvar = upper_bounds(parameter_set),
   kwargs...,
 ) where {P <: AbstractParameterSet, F1 <: Function, F2 <: Function, M <: AbstractNLPModel}
   x_n = names(parameter_set)
@@ -149,21 +144,31 @@ function BBModel(
   length(problems) > 0 || error("No problems given")
   @lencheck ncon ucon lcon
   nvar = length(x0)
-  bbmeta = BBModelMeta(
-    nvar,
-    x0,
-    x_n,
-    lvar,
-    uvar;
+  bbmeta = BBModelMeta(nvar, x0, x_n, lvar, uvar;)
+  meta = NLPModelMeta(
+    nvar;
+    x0 = Vector{Float64}([Float64(i) for i in x0]),
+    lvar = lvar,
+    uvar = uvar,
+    name = name,
   )
-  meta = NLPModelMeta(nvar; x0=Vector{Float64}([Float64(i) for i in x0]), lvar=lvar, uvar=uvar, name=name)
-  problems = Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
+  problems =
+    Dict{Int, Problem}(id => Problem(id, p, eps(Float64)) for (id, p) ∈ enumerate(problems))
 
-  return BBModel(bbmeta, meta, Counters(), solver_function, auxiliary_function, c, problems, parameter_set)
+  return BBModel(
+    bbmeta,
+    meta,
+    Counters(),
+    solver_function,
+    auxiliary_function,
+    c,
+    problems,
+    parameter_set,
+  )
 end
 
 # By default, this function will return the time in seconds
-function NLPModels.obj(nlp::BBModel, x::Vector{Float64})  
+function NLPModels.obj(nlp::BBModel, x::Vector{Float64})
   problems = nlp.problems
   solver_function = nlp.solver_function
   total_time = 0.0
@@ -175,17 +180,18 @@ function NLPModels.obj(nlp::BBModel, x::Vector{Float64})
 end
 
 # Function to use for NOMAD: assumes that an interface will sanitize Nomad's output
-function obj!(nlp::BBModel, v::Vector{Float64}, p::Problem)  
+function obj!(nlp::BBModel, v::Vector{Float64}, p::Problem)
   haskey(nlp.problems, get_id(p)) || error("Problem could not be found in problem set")
 
   solver_function = nlp.solver_function
   auxiliary_function = nlp.auxiliary_function
   nlp_to_solve = get_nlp(p)
   # Update parameter values with the ones found by NOMAD.
-  param_set = nlp.parameter_set 
+  param_set = nlp.parameter_set
   update!(param_set, v)
   bmark_result, stat =
-    @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = 10 samples = 5 evals = 1
+    @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = 10 samples = 5 evals =
+      1
   times = bmark_result.times
   normalize_times!(times)
   memory = bmark_result.memory
