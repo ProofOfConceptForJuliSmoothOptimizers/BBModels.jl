@@ -11,11 +11,7 @@ struct BBModelMeta
   ifloat::Vector{Int}
   ibool::Vector{Int}
 
-  function BBModelMeta(
-    nvar::Int,
-    x0::AbstractVector,
-    x_n::Vector{String}
-  )
+  function BBModelMeta(nvar::Int, x0::AbstractVector, x_n::Vector{String})
     if (nvar < 1)
       error("Nonsensical dimensions")
     end
