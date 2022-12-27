@@ -9,7 +9,7 @@ function normalize_times!(times::Vector{Float64})
   times ./= get_cpu_frequency()
 end
 
-"""Returns the CPU frequency in MHz of the host executing this function."""
+"""Returns the CPU frequency in GHz of the host executing this function."""
 function get_cpu_frequency()
   return first(Sys.cpu_info()).speed / 1.0e3
 end

@@ -180,15 +180,13 @@ function NLPModels.obj(nlp::BBModel, x::AbstractVector)
 end
 
 # Function to use for NOMAD: assumes that an interface will sanitize Nomad's output
-function obj!(nlp::BBModel, v::AbstractVector, p::Problem)
+function obj!(nlp::BBModel, p::Problem)
   haskey(nlp.problems, get_id(p)) || error("Problem could not be found in problem set")
 
   solver_function = nlp.solver_function
   auxiliary_function = nlp.auxiliary_function
   nlp_to_solve = get_nlp(p)
-  # Update parameter values with the ones found by NOMAD.
   param_set = nlp.parameter_set
-  update!(param_set, v)
   bmark_result, stat =
     @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = 10 samples = 5 evals =
       1
