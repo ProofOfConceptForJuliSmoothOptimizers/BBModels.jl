@@ -36,10 +36,13 @@ struct BBModelMeta
     new(nvar, x_n, icat, ibool, iint, ifloat)
   end
 
-  function BBModelMeta(parameter_set::AbstractParameterSet, subset::Union{AbstractVector{Symbol}, NTuple{N, Symbol}}) where {N}
+  function BBModelMeta(
+    parameter_set::AbstractParameterSet,
+    subset::Union{AbstractVector{Symbol}, NTuple{N, Symbol}},
+  ) where {N}
     nvar = length(subsett)
     x_n = Vector{String}(undef, nvar)
-    for (i, field) = enumerate(subset)
+    for (i, field) in enumerate(subset)
       p = getfield(parameter_set, field)
       x_n[i] = name(p)
     end
@@ -54,12 +57,12 @@ end
 Return the set of indices of categorical, boolean, integer and real parameters within the `subset` of fields in `P <: AbstractParameterSet`.
 """
 function types_indices(
-  parameter_set::P, 
+  parameter_set::P,
   subset::Union{AbstractVector{Symbol}, NTuple{N, Symbol}} = fieldnames(P),
 ) where {P <: AbstractParameterSet, N}
   icat, ibool, iint, ifloat = Int[], Int[], Int[], Int[]
 
-  for (i, field) = enumerate(subset)
+  for (i, field) in enumerate(subset)
     p = getfield(parameter_set, field)
     if typeof(p.domain) <: CategoricalDomain
       push!(icat, i)
