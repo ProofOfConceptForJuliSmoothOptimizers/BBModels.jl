@@ -12,7 +12,8 @@ function tailored_aux_func(p_metric::ProblemMetrics)
   return median_time + memory + counters.neval_obj + (Float64(!solved) * 5.0 * median_time)
 end
 
-@testset "Testing BBModels" verbose = true for aux_func in (time_only, memory_only, sumfc, tailored_aux_func)
+@testset "Testing BBModels" verbose = true for aux_func in
+                                               (time_only, memory_only, sumfc, tailored_aux_func)
   T = Float64
   I = Int64
   param_set = R2ParameterSet()
