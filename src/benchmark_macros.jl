@@ -1,19 +1,12 @@
+# https://discourse.julialang.org/t/retain-computation-results-with-btime/62644/8
 macro benchmark_with_result(args...)
   _, params = prunekwargs(args...)
-  tmp = gensym()
+  bench = gensym()
+  tune_phase = hasevals(params) ? :() : :($BenchmarkTools.tune!($bench))
   return esc(quote
-    local $tmp = $BenchmarkTools.@benchmarkable $(args...)
-    $BenchmarkTools.warmup($tmp)
-    $(hasevals(params) ? :() : :($BenchmarkTools.tune!($tmp)))
-    $run_with_return_value($tmp)
+    local $bench = $BenchmarkTools.@benchmarkable $(args...)
+    $BenchmarkTools.warmup($bench)
+    $tune_phase
+    $BenchmarkTools.run_result($bench)
   end)
 end
-
-run_with_return_value(
-  b::Benchmark,
-  p::Parameters = b.params;
-  progressid = nothing,
-  nleaves = NaN,
-  ndone = NaN,
-  kwargs...,
-) = run_result(b, p; kwargs...)

@@ -1,4 +1,4 @@
-export AbstractBBModel, BBModel, obj, obj!
+export AbstractBBModel, BBModel, obj
 
 abstract type AbstractBBModel{T, S} <: AbstractNLPModel{T, S} end
 
@@ -167,38 +167,35 @@ function BBModel(
   )
 end
 
-# By default, this function will return the time in seconds
-function NLPModels.obj(nlp::BBModel, x::AbstractVector)
-  problems = nlp.problems
-  solver_function = nlp.solver_function
-  total_time = 0.0
-  for (pb_id, problem) in problems
-    total_time += @elapsed solver_function(get_nlp(problem), x)
+function NLPModels.obj(nlp::BBModel, x::AbstractVector; seconds = 10.0, samples = 1, evals = 1)
+  @lencheck nlp.bb_meta.nvar x
+  total = 0.0
+  for (pb_id, problem) in nlp.problems
+    p_metric = obj(nlp, problem, x, seconds = seconds, samples = samples, evals = evals)
+    total += nlp.auxiliary_function(p_metric)
   end
 
-  return total_time
+  return total
 end
 
-# Function to use for NOMAD: assumes that an interface will sanitize Nomad's output
-function obj!(nlp::BBModel, p::Problem)
+function NLPModels.obj(nlp::BBModel, p::Problem, x::AbstractVector; seconds = 10.0, samples = 1, evals = 1)
+  @lencheck nlp.bb_meta.nvar x
   haskey(nlp.problems, get_id(p)) || error("Problem could not be found in problem set")
 
   solver_function = nlp.solver_function
-  auxiliary_function = nlp.auxiliary_function
   nlp_to_solve = get_nlp(p)
-  param_set = nlp.parameter_set
-  bmark_result, stat =
-    @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = 10 samples = 5 evals =
-      1
+  bmark_result, stat = @benchmark_with_result $solver_function($nlp_to_solve, $x) seconds = seconds samples = samples evals = evals
+
   times = bmark_result.times
   normalize_times!(times)
   memory = bmark_result.memory
   solved = !is_failure(stat)
   counters = deepcopy(nlp_to_solve.counters)
   p_metric = ProblemMetrics(get_id(p), times, memory, solved, counters)
+
   reset!(nlp_to_solve)
 
-  return auxiliary_function(p_metric), p_metric
+  return p_metric
 end
 
 function NLPModels.cons!(nlp::BBModel, x::AbstractVector, c::AbstractVector)
