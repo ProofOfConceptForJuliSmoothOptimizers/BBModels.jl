@@ -6,6 +6,7 @@ using OptimizationProblems, OptimizationProblems.ADNLPProblems
 using JSOSolvers
 using Test
 using SolverParameters
+using Statistics
 
 T = Float64
 n = 5

@@ -2,6 +2,7 @@
 function solver_func(nlp::AbstractNLPModel, p::AbstractVector)
   @info "problem name: $(get_name(nlp))"
   @info "bbmodel vector: $p"
+  return GenericExecutionStats(nlp)
 end
 
 function aux_func(p_metric::ProblemMetrics)
