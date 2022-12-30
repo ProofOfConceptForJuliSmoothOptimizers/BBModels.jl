@@ -169,22 +169,24 @@ end
 
 function NLPModels.obj(nlp::BBModel, x::AbstractVector; seconds = 10.0, samples = 1, evals = 1)
   @lencheck nlp.bb_meta.nvar x
+  param_set = nlp.parameter_set
   total = 0.0
   for (pb_id, problem) in nlp.problems
-    p_metric = obj(nlp, problem, x, seconds = seconds, samples = samples, evals = evals)
+    SolverParameters.set_values_num!(param_set, x)
+    p_metric = cost(nlp, problem, seconds = seconds, samples = samples, evals = evals)
     total += nlp.auxiliary_function(p_metric)
   end
 
   return total
 end
 
-function NLPModels.obj(nlp::BBModel, p::Problem, x::AbstractVector; seconds = 10.0, samples = 1, evals = 1)
-  @lencheck nlp.bb_meta.nvar x
+function cost(nlp::BBModel, p::Problem; seconds = 10.0, samples = 1, evals = 1)
   haskey(nlp.problems, get_id(p)) || error("Problem could not be found in problem set")
 
   solver_function = nlp.solver_function
+  param_set = nlp.parameter_set
   nlp_to_solve = get_nlp(p)
-  bmark_result, stat = @benchmark_with_result $solver_function($nlp_to_solve, $x) seconds = seconds samples = samples evals = evals
+  bmark_result, stat = @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = seconds samples = samples evals = evals
 
   times = bmark_result.times
   normalize_times!(times)
