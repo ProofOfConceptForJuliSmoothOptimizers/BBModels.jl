@@ -31,8 +31,14 @@ Additional keyword arguments are:
 
 Note that if `x0` is not provided, the computations are run in `Vector{Float64}`.
 """
-mutable struct BBModel{P <: AbstractParameterSet, T, S, F1 <: Function, F2 <: Function, F3 <: Function} <:
-               AbstractNLPModel{T, S}
+mutable struct BBModel{
+  P <: AbstractParameterSet,
+  T,
+  S,
+  F1 <: Function,
+  F2 <: Function,
+  F3 <: Function,
+} <: AbstractNLPModel{T, S}
   bb_meta::BBModelMeta
   meta::NLPModelMeta{T, S}
   counters::Counters
@@ -60,8 +66,7 @@ function BBModel(
   @lencheck nvar lvar uvar
   bbmeta = BBModelMeta(parameter_set)
   meta = NLPModelMeta(nvar; x0 = x0, lvar = lvar, uvar = uvar, name = name)
-  problems =
-    Dict{Int, Problem}(id => Problem(id, p, eps()) for (id, p) ∈ enumerate(problems))
+  problems = Dict{Int, Problem}(id => Problem(id, p, eps()) for (id, p) ∈ enumerate(problems))
   return BBModel(
     bbmeta,
     meta,
@@ -92,9 +97,17 @@ function BBModel(
   @lencheck ncon ucon
   @lencheck nvar lvar uvar
   bbmeta = BBModelMeta(parameter_set)
-  meta = NLPModelMeta(nvar; x0 = x0, ncon = ncon, lvar = lvar, uvar = uvar, lcon = lcon, ucon = ucon, name = name)
-  problems =
-    Dict{Int, Problem}(id => Problem(id, p, eps()) for (id, p) ∈ enumerate(problems))
+  meta = NLPModelMeta(
+    nvar;
+    x0 = x0,
+    ncon = ncon,
+    lvar = lvar,
+    uvar = uvar,
+    lcon = lcon,
+    ucon = ucon,
+    name = name,
+  )
+  problems = Dict{Int, Problem}(id => Problem(id, p, eps()) for (id, p) ∈ enumerate(problems))
   return BBModel(
     bbmeta,
     meta,
