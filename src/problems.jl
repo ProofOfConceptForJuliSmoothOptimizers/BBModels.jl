@@ -85,7 +85,7 @@ Return the median time, if more than one solve, of `p_metric`.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
 function time_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
-  median(get_times(p_metric)) + !(get_solved(p)) * penalty
+  median(get_times(p_metric)) + !(get_solved(p_metric)) * penalty
 end
 
 """
@@ -94,7 +94,7 @@ end
 Return the memory used in `p_metric`.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
-memory_only(p_metric::ProblemMetrics) = get_memory(p_metric) + !(get_solved(p)) * penalty
+memory_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0) = get_memory(p_metric) + !(get_solved(p_metric)) * penalty
 
 """
     sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
@@ -104,5 +104,5 @@ Unsolved problems are penalyzed by a `penalty` factor.
 """
 function sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
   counters = get_counters(p_metric)
-  return neval_obj(counters) + neval_cons(counters) + !(get_solved(p)) * penalty
+  return counters.neval_obj + counters.neval_cons + !(get_solved(p_metric)) * penalty
 end
