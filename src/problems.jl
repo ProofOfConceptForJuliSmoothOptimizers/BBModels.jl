@@ -94,7 +94,8 @@ end
 Return the memory used in `p_metric`.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
-memory_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0) = get_memory(p_metric) + !(get_solved(p_metric)) * penalty
+memory_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0) =
+  get_memory(p_metric) + !(get_solved(p_metric)) * penalty
 
 """
     sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)

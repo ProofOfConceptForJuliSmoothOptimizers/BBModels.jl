@@ -139,7 +139,9 @@ function cost(nlp::BBModel, p::Problem; seconds = 10.0, samples = 1, evals = 1)
   solver_function = nlp.solver_function
   param_set = nlp.parameter_set
   nlp_to_solve = get_nlp(p)
-  bmark_result, stat = @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = seconds samples = samples evals = evals
+  bmark_result, stat =
+    @benchmark_with_result $solver_function($nlp_to_solve, $param_set) seconds = seconds samples =
+      samples evals = evals
 
   times = bmark_result.times
   normalize_times!(times)
