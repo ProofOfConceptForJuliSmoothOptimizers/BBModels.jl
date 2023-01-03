@@ -9,6 +9,8 @@ export Problem,
   get_solved,
   get_counters
 
+export time_only, memory_only, sumfc
+
 """Mutable struct encapsulating a NLPModel.
 The goal is to keep track of an instance of an `AbstractNLPModel` in a distributed context by giving each instance an `id` and a `weight`.
 """
@@ -75,3 +77,32 @@ get_solved(p::ProblemMetrics) = p.solved
 
 """Returns the Counters related the problem linked to this `ProblemMetrics` instance."""
 get_counters(p::ProblemMetrics) = p.counters
+
+"""
+    time_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+
+Return the median time, if more than one solve, of `p_metric`.
+Unsolved problems are penalyzed by a `penalty` factor.
+"""
+function time_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+  median(get_times(p_metric)) + !(get_solved(p)) * penalty
+end
+
+"""
+    memory_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+
+Return the memory used in `p_metric`.
+Unsolved problems are penalyzed by a `penalty` factor.
+"""
+memory_only(p_metric::ProblemMetrics) = get_memory(p_metric) + !(get_solved(p)) * penalty
+
+"""
+    sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+
+Return the sum of the evaluations of the objective function and constraint function.
+Unsolved problems are penalyzed by a `penalty` factor.
+"""
+function sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+  counters = get_counters(p_metric)
+  return neval_obj(counters) + neval_cons(counters) + !(get_solved(p)) * penalty
+end
