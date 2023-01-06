@@ -62,6 +62,43 @@ end
   @show obj(nlp, x)
 end
 
+@testset "Subset of parameters" verbose = true for T in (Float32, Float64)
+  param_set = TestParameterSet()
+  subset = (:submethod, :mem) # switched the order
+
+  x0 = values(subset, param_set)
+  @test x0 == [:cg, 5]
+  x = rand(T, 1)
+  values_num!(subset, param_set, x)
+  @test x == T[5]
+
+  bbmeta = BBModelMeta(param_set, subset)
+  @test bbmeta.nvar == 2
+  @test bbmeta.icat == [1]
+  @test bbmeta.iint == [2]
+  @test bbmeta.ifloat == []
+  @test bbmeta.ibool == []
+
+  nlp = BBModel(param_set, problems, solver_func, time_only, subset = subset, x0 = x)
+  @test get_nvar(nlp) == 1
+  @test eltype(get_x0(nlp)) == T
+  @test get_lvar(nlp) == [5]
+  @test get_uvar(nlp) == [20]
+  @test obj(nlp, x) ≥ 0
+
+  c = x -> [x[1]]
+  con = zeros(T, 1)
+  nlp = BBModel(param_set, problems, solver_func, time_only, c, con, con, subset = subset, x0 = x)
+  @test get_nvar(nlp) == 1
+  @test eltype(get_x0(nlp)) == T
+  @test get_lvar(nlp) == [5]
+  @test get_uvar(nlp) == [20]
+  @test eltype(nlp.meta.lcon) == T
+  @test eltype(nlp.meta.ucon) == T
+  @test eltype(cons(nlp, nlp.meta.x0)) == T
+  @test obj(nlp, x) ≥ 0
+end
+
 function tailored_aux_func(p_metric::ProblemMetrics)
   median_time = median(get_times(p_metric))
   memory = get_memory(p_metric)

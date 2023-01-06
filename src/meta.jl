@@ -6,10 +6,9 @@ export BBModelMeta
 A composite type that represents the main features of the blackbox optimization problem of parameters.
 
 ---
-    BBModelMeta(parameter_set::AbstractParameterSet)
-    BBModelMeta(parameter_set::AbstractParameterSet, subset::Union{AbstractVector{Symbol}, NTuple{N, Symbol}})
+    BBModelMeta(parameter_set::P [, subset::NTuple{N, Symbol} = fieldnames(P)])
 
-Create an `BBModelMeta` of all parameters or a `subset`.
+Create an `BBModelMeta` of all parameters or a `subset` on a parameter_set of type `P <: AbstractParameterSet`.
 
 `BBModelMeta` contains the following attributes:
 - `nvar`: number of variables;
@@ -29,36 +28,28 @@ struct BBModelMeta
   iint::Vector{Int}
   ifloat::Vector{Int}
 
-  function BBModelMeta(parameter_set::AbstractParameterSet)
-    nvar = length(parameter_set)
-    x_n = names(parameter_set)
-    icat, ibool, iint, ifloat = types_indices(parameter_set)
-    new(nvar, x_n, icat, ibool, iint, ifloat)
-  end
-
   function BBModelMeta(
-    parameter_set::AbstractParameterSet,
-    subset::Union{AbstractVector{Symbol}, NTuple{N, Symbol}},
-  ) where {N}
-    nvar = length(subsett)
-    x_n = Vector{String}(undef, nvar)
+    parameter_set::P,
+    subset::NTuple{N, Symbol} = fieldnames(P),
+  ) where {P <: AbstractParameterSet, N}
+    x_n = Vector{String}(undef, N)
     for (i, field) in enumerate(subset)
       p = getfield(parameter_set, field)
       x_n[i] = name(p)
     end
     icat, ibool, iint, ifloat = types_indices(parameter_set, subset)
-    new(nvar, x_n, icat, ibool, iint, ifloat)
+    new(N, x_n, icat, ibool, iint, ifloat)
   end
 end
 
 """
-    types_indices(parameter_set::P [, subset::Union{AbstractVector{Symbol}, NTuple{N, Symbol}} = fieldnames(P)])
+    types_indices(parameter_set::P [, subset::NTuple{N, Symbol} = fieldnames(P)])
 
 Return the set of indices of categorical, boolean, integer and real parameters within the `subset` of fields in `P <: AbstractParameterSet`.
 """
 function types_indices(
   parameter_set::P,
-  subset::Union{AbstractVector{Symbol}, NTuple{N, Symbol}} = fieldnames(P),
+  subset::NTuple{N, Symbol} = fieldnames(P),
 ) where {P <: AbstractParameterSet, N}
   icat, ibool, iint, ifloat = Int[], Int[], Int[], Int[]
 

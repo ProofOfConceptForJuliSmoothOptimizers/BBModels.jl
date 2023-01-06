@@ -24,6 +24,7 @@ For constrained problems:
 
 Additional keyword arguments are:
 
+- `subset::NTuple{N, Symbol}`: subset of parameters to be considered (by default all parameters from `parameter_set`);
 - `x0::AbstractVector`: initial values for the parameters (by default `Float64.(values(parameter_set))`);
 - `lvar::AbstractVector`: lower bound on the the parameters (by default `Float64.(lower_bounds(parameter_set))`);
 - `uvar::AbstractVector`: upper bound on the the parameters (by default `Float64.(lower_bounds(parameter_set))`);
@@ -38,6 +39,7 @@ mutable struct BBModel{
   F1 <: Function,
   F2 <: Function,
   F3 <: Function,
+  N,
 } <: AbstractNLPModel{T, S}
   bb_meta::BBModelMeta
   meta::NLPModelMeta{T, S}
@@ -47,24 +49,26 @@ mutable struct BBModel{
   c::F3
   problems::Dict{Int, Problem}
   parameter_set::P
+  subset::NTuple{N, Symbol}
 end
 
 NLPModels.show_header(io::IO, ::BBModel) = println(io, "BBModel - Black Box Optimization Model")
 
 function BBModel(
-  parameter_set::AbstractParameterSet,
+  parameter_set::P,
   problems::Vector{M},
   solver_function::Function,
   auxiliary_function::Function = time_only;
-  x0::S = Float64.(values_num(parameter_set)),
-  lvar::S = eltype(x0).(lower_bounds(parameter_set)),
-  uvar::S = eltype(x0).(upper_bounds(parameter_set)),
+  subset::NTuple{N, Symbol} = fieldnames(P),
+  x0::S = Float64.(values_num(subset, parameter_set)),
+  lvar::S = eltype(x0).(lower_bounds(subset, parameter_set)),
+  uvar::S = eltype(x0).(upper_bounds(subset, parameter_set)),
   name::String = "generic-BBModel",
-) where {M <: AbstractNLPModel, S}
+) where {M <: AbstractNLPModel, S, N, P <: AbstractParameterSet}
   length(problems) > 0 || error("No problems given")
   nvar = length(x0)
   @lencheck nvar lvar uvar
-  bbmeta = BBModelMeta(parameter_set)
+  bbmeta = BBModelMeta(parameter_set, subset)
   meta = NLPModelMeta(nvar; x0 = x0, lvar = lvar, uvar = uvar, name = name)
   problems = Dict{Int, Problem}(id => Problem(id, p, eps()) for (id, p) ∈ enumerate(problems))
   return BBModel(
@@ -76,27 +80,29 @@ function BBModel(
     x -> T[],
     problems,
     parameter_set,
+    subset,
   )
 end
 
 function BBModel(
-  parameter_set::AbstractParameterSet,
+  parameter_set::P,
   problems::Vector{M},
   solver_function::Function,
   auxiliary_function::Function,
   c::Function,
   lcon::S,
   ucon::S;
-  x0::S = eltype(S).(values_num(parameter_set)),
-  lvar::S = eltype(S).(lower_bounds(parameter_set)),
-  uvar::S = eltype(S).(upper_bounds(parameter_set)),
+  subset::NTuple{N, Symbol} = fieldnames(P),
+  x0::S = eltype(S).(values_num(subset, parameter_set)),
+  lvar::S = eltype(S).(lower_bounds(subset, parameter_set)),
+  uvar::S = eltype(S).(upper_bounds(subset, parameter_set)),
   name::String = "generic-BBModel",
-) where {M <: AbstractNLPModel, S}
+) where {M <: AbstractNLPModel, S, N, P <: AbstractParameterSet}
   length(problems) > 0 || error("No problems given")
   nvar, ncon = length(x0), length(lcon)
   @lencheck ncon ucon
   @lencheck nvar lvar uvar
-  bbmeta = BBModelMeta(parameter_set)
+  bbmeta = BBModelMeta(parameter_set, subset)
   meta = NLPModelMeta(
     nvar;
     x0 = x0,
@@ -117,15 +123,16 @@ function BBModel(
     c,
     problems,
     parameter_set,
+    subset,
   )
 end
 
 function NLPModels.obj(nlp::BBModel, x::AbstractVector; seconds = 10.0, samples = 1, evals = 1)
   @lencheck nlp.meta.nvar x
-  param_set = nlp.parameter_set
+  param_set, subset = nlp.parameter_set, nlp.subset
   total = 0.0
   for (pb_id, problem) in nlp.problems
-    SolverParameters.set_values_num!(param_set, x)
+    set_values_num!(subset, param_set, x)
     p_metric = cost(nlp, problem, seconds = seconds, samples = samples, evals = evals)
     total += nlp.auxiliary_function(p_metric)
   end
