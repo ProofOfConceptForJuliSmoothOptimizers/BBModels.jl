@@ -41,7 +41,7 @@ end
   @test bbmeta.iint == [2]
   @test bbmeta.ifloat == [1]
   @test bbmeta.ibool == []
-  
+
   nlp = BBModel(param_set, problems, solver_func, time_only, x0 = x)
   @test get_nvar(nlp) == 2
   @test eltype(get_x0(nlp)) == T
