@@ -1,8 +1,10 @@
 """Returns `true` if a status is considered a failure."""
-function is_failure(stats::AbstractExecutionStats)
+function is_failure(status::Symbol)
   failure_status = [:exception, :infeasible, :max_eval, :max_iter, :max_time, :stalled, :neg_pred]
-  return any(s -> s == stats.status, failure_status)
+  return any(s -> s == status, failure_status)
 end
+
+is_failure(stats::AbstractExecutionStats) = is_failure(stats.status)
 
 """Modifies in place a Vector of times by dividing each value by the frequency of the CPU in Mz."""
 function normalize_times!(times::Vector{Float64})

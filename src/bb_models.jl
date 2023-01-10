@@ -153,9 +153,8 @@ function cost(nlp::BBModel, p::Problem; seconds = 10.0, samples = 1, evals = 1)
   times = bmark_result.times
   normalize_times!(times)
   memory = bmark_result.memory
-  solved = !is_failure(stat)
   counters = deepcopy(nlp_to_solve.counters)
-  p_metric = ProblemMetrics(get_id(p), times, memory, solved, counters)
+  p_metric = ProblemMetrics(get_id(p), times, memory, stat.status, counters)
 
   reset!(nlp_to_solve)
 

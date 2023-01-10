@@ -6,8 +6,9 @@ export Problem,
   get_times,
   get_memory,
   get_nb_eval,
-  get_solved,
-  get_counters
+  get_status,
+  get_counters,
+  is_failure
 
 export time_only, memory_only, sumfc
 
@@ -54,21 +55,21 @@ struct ProblemMetrics
   pb_id::Int
   times::Vector{Float64}
   memory::Int
-  solved::Bool
+  status::Symbol
   counters::Counters
 
   function ProblemMetrics(
     id::Int64,
     times::Vector{Float64},
     memory::Int64,
-    solved::Bool,
+    status::Symbol,
     counters::Counters,
   )
-    new(id, times, memory, solved, counters)
+    new(id, times, memory, status, counters)
   end
 end
 
-ProblemMetrics(id::Int64, t::Tuple{Vector{Float64}, Int64, Bool, Counters}) =
+ProblemMetrics(id::Int64, t::Tuple{Vector{Float64}, Int64, Symbol, Counters}) =
   ProblemMetrics(id, t...)
 
 """Returns the id of the problem linked to this `ProblemMetrics` instance."""
@@ -81,7 +82,7 @@ get_times(p::ProblemMetrics) = p.times
 get_memory(p::ProblemMetrics) = p.memory
 
 """Returns the problem linked to this `ProblemMetrics` instance is solved."""
-get_solved(p::ProblemMetrics) = p.solved
+get_status(p::ProblemMetrics) = p.status
 
 """Returns the Counters related the problem linked to this `ProblemMetrics` instance."""
 get_counters(p::ProblemMetrics) = p.counters
@@ -93,7 +94,7 @@ Return the median time, if more than one solve, of `p_metric`.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
 function time_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
-  median(get_times(p_metric)) + !(get_solved(p_metric)) * penalty
+  median(get_times(p_metric)) + is_failure(get_status(p_metric)) * penalty
 end
 
 """
@@ -103,7 +104,7 @@ Return the memory used in `p_metric`.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
 memory_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0) =
-  get_memory(p_metric) + !(get_solved(p_metric)) * penalty
+  get_memory(p_metric) + is_failure(get_status(p_metric)) * penalty
 
 """
     sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
@@ -113,5 +114,5 @@ Unsolved problems are penalyzed by a `penalty` factor.
 """
 function sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
   counters = get_counters(p_metric)
-  return counters.neval_obj + counters.neval_cons + !(get_solved(p_metric)) * penalty
+  return counters.neval_obj + counters.neval_cons + is_failure(get_status(p_metric)) * penalty
 end
