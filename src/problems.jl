@@ -26,7 +26,11 @@ mutable struct Problem{M <: Union{AbstractNLPModel, Function}}
   id::Int
   nlp::M
   weight::Float64
-  function Problem(id::Int, nlp::M, weight::Float64 = eps()) where {M <: Union{AbstractNLPModel, Function}}
+  function Problem(
+    id::Int,
+    nlp::M,
+    weight::Float64 = eps(),
+  ) where {M <: Union{AbstractNLPModel, Function}}
     weight ≥ 0 || error("weight of a problem should be greater or equal to 0")
     new{M}(id, nlp, weight)
   end

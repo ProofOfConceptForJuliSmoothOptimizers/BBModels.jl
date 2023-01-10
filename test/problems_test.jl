@@ -7,13 +7,7 @@
 
   bmark, stats = BBModels.@benchmark_with_result lbfgs($nlp; mem = 15)
   BBModels.normalize_times!(bmark.times)
-  p_metrics = ProblemMetrics(
-    1,
-    bmark.times,
-    bmark.memory,
-    stats.status,
-    deepcopy(nlp.counters),
-  )
+  p_metrics = ProblemMetrics(1, bmark.times, bmark.memory, stats.status, deepcopy(nlp.counters))
 
   @test get_pb_id(p_metrics) == 1
   @test get_times(p_metrics) === bmark.times

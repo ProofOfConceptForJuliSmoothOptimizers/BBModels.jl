@@ -58,7 +58,6 @@ struct TestParameterSet{T <: AbstractFloat, I <: Integer} <: AbstractParameterSe
     mem::I = I(5),
     submethod::Symbol = :cg,
   ) where {T <: AbstractFloat, I <: Integer}
-
     p_set = new{T, I}(
       Parameter(T(β), RealInterval(T(0), T(1000)), ""),
       Parameter(I(mem), IntegerRange(I(5), I(20)), ""),

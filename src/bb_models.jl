@@ -174,7 +174,6 @@ function obj_cat(nlp::BBModel, x::AbstractVector; kwargs...)
   return total
 end
 
-
 """
     cost(nlp::BBModel, p::Problem; seconds = 10.0, samples = 1, evals = 1)
 

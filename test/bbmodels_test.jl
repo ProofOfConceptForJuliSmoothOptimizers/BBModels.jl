@@ -12,7 +12,10 @@ end
   @test eltype(nlp.meta.uvar) == T
 end
 
-@testset "Testing multi-precision for constrained $(T)-BBModels" verbose = true for T in (Float32, Float64)
+@testset "Testing multi-precision for constrained $(T)-BBModels" verbose = true for T in (
+  Float32,
+  Float64,
+)
   param_set = R2ParameterSet()
   c = x -> [x[1]]
   con = zeros(T, 1)
@@ -26,7 +29,8 @@ end
   @test eltype(cons(nlp, nlp.meta.x0)) == T
 end
 
-@testset "Testing multi-precision for (constrained) $(T)-BBModels with categorical parameters" verbose = true for T in (Float32, Float64)
+@testset "Testing multi-precision for (constrained) $(T)-BBModels with categorical parameters" verbose =
+  true for T in (Float32, Float64)
   param_set = TestParameterSet()
   x0 = values(param_set)
   x = rand(T, 2)
@@ -38,7 +42,7 @@ end
   @test bbmeta.iint == [2]
   @test bbmeta.ifloat == [1]
   @test bbmeta.ibool == []
-  
+
   nlp = BBModel(param_set, problems, solver_func, time_only, x0 = x)
   @test get_nvar(nlp) == 2
   @test eltype(get_x0(nlp)) == T
@@ -61,7 +65,10 @@ end
   @test obj_cat(nlp, x0) ≥ 0
 end
 
-@testset "Testing multi-precision $T with a subset of parameters" verbose = true for T in (Float32, Float64)
+@testset "Testing multi-precision $T with a subset of parameters" verbose = true for T in (
+  Float32,
+  Float64,
+)
   param_set = TestParameterSet()
   subset = (:submethod, :mem) # switched the order
 
@@ -108,8 +115,12 @@ function tailored_aux_func(p_metric::ProblemMetrics)
   return median_time + memory + counters.neval_obj + (Float64(!solved) * 5.0 * median_time)
 end
 
-@testset "Testing BBModels with cost functions $(string(aux_func))" for aux_func in
-                                               (time_only, memory_only, sumfc, tailored_aux_func)
+@testset "Testing BBModels with cost functions $(string(aux_func))" for aux_func in (
+  time_only,
+  memory_only,
+  sumfc,
+  tailored_aux_func,
+)
   T = Float64
   I = Int64
   param_set = R2ParameterSet()

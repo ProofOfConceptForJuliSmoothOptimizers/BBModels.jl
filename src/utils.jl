@@ -6,7 +6,19 @@ Returns `true` if a status is considered a failure.
 `SolverCore.show_statuses()` return the list of all possible statuses.
 """
 function is_failure(status::Symbol)
-  failure_status = [:exception, :infeasible, :max_eval, :max_iter, :max_time, :stalled, :neg_pred, :not_desc, :small_step, :unknown, :user]
+  failure_status = [
+    :exception,
+    :infeasible,
+    :max_eval,
+    :max_iter,
+    :max_time,
+    :stalled,
+    :neg_pred,
+    :not_desc,
+    :small_step,
+    :unknown,
+    :user,
+  ]
   return any(s -> s == status, failure_status)
 end
 
