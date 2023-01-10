@@ -11,16 +11,23 @@ export Problem,
 
 export time_only, memory_only, sumfc
 
-"""Mutable struct encapsulating a NLPModel.
-The goal is to keep track of an instance of an `AbstractNLPModel` in a distributed context by giving each instance an `id` and a `weight`.
+"""Mutable struct `Problem`
+
+Keep track of an instance of an `AbstractNLPModel` in a distributed context by giving each instance an `id` and a non-negative `weight`.
+
+The following constructor is available:
+
+    Problem(id::Int, nlp::Union{AbstractNLPModel, Function}, weight::Float64)
+
+Assign an `id` and a `weight` to the problem `nlp`. Note that `nlp` can be given as an `Function` returning an `AbstractNLPModel` once evaluated.
 """
-mutable struct Problem
+mutable struct Problem{M <: Union{AbstractNLPModel, Function}}
   id::Int
-  nlp::AbstractNLPModel
+  nlp::M
   weight::Float64
-  function Problem(id::Int, nlp::AbstractNLPModel, weight::Float64)
+  function Problem(id::Int, nlp::M, weight::Float64 = eps()) where {M <: Union{AbstractNLPModel, Function}}
     weight ≥ 0 || error("weight of a problem should be greater or equal to 0")
-    new(id, nlp, weight)
+    new{M}(id, nlp, weight)
   end
 end
 
@@ -29,6 +36,7 @@ Problem(id::Int, nlp::AbstractNLPModel) = Problem(id, nlp, eps(Float64))
 
 """Returns the `AbstractNLPModel` of a `Problem`."""
 get_nlp(p::Problem) = p.nlp
+get_nlp(p::Problem{F}) where {F <: Function} = p.nlp()
 
 """Returns the id of a `Problem`."""
 get_id(p::Problem) = p.id

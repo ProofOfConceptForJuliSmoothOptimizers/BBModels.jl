@@ -64,7 +64,7 @@ function BBModel(
   lvar::S = eltype(x0).(lower_bounds(subset, parameter_set)),
   uvar::S = eltype(x0).(upper_bounds(subset, parameter_set)),
   name::String = "generic-BBModel",
-) where {M <: AbstractNLPModel, S, N, P <: AbstractParameterSet}
+) where {M <: Union{AbstractNLPModel, Function}, S, N, P <: AbstractParameterSet}
   length(problems) > 0 || error("No problems given")
   nvar = length(x0)
   @lencheck nvar lvar uvar
@@ -97,7 +97,7 @@ function BBModel(
   lvar::S = eltype(S).(lower_bounds(subset, parameter_set)),
   uvar::S = eltype(S).(upper_bounds(subset, parameter_set)),
   name::String = "generic-BBModel",
-) where {M <: AbstractNLPModel, S, N, P <: AbstractParameterSet}
+) where {M <: Union{AbstractNLPModel, Function}, S, N, P <: AbstractParameterSet}
   length(problems) > 0 || error("No problems given")
   nvar, ncon = length(x0), length(lcon)
   @lencheck ncon ucon

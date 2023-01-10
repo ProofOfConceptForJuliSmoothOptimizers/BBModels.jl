@@ -15,6 +15,7 @@ meta = OptimizationProblems.meta
 list = meta[meta.minimize .& (meta.ncon .== 0) .& .!meta.has_bounds .& (meta.nvar .≤ 100), :name]
 list = intersect(Symbol.(list), names(OptimizationProblems.ADNLPProblems)) # optional
 problems = [eval(p)(type = Val(T)) for (_, p) ∈ zip(1:n, list)]
+problems_expr = [() -> eval(p)(type = Val(T)) for (_, p) ∈ zip(1:n, list)]
 
 @testset "BBModels.jl" verbose = true begin
   include("param_structs.jl")
