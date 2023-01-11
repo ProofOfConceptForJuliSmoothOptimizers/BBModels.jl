@@ -114,17 +114,7 @@ function BBModel(
     name = name,
   )
   problems = Dict{Int, Problem}(id => Problem(id, p, eps()) for (id, p) ∈ enumerate(problems))
-  return BBModel(
-    bbmeta,
-    meta,
-    Counters(),
-    solver_function,
-    f,
-    c,
-    problems,
-    parameter_set,
-    subset,
-  )
+  return BBModel(bbmeta, meta, Counters(), solver_function, f, c, problems, parameter_set, subset)
 end
 
 """
