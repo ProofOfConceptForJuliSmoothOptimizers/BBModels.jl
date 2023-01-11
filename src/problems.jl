@@ -46,14 +46,18 @@ get_nlp(p::Problem{F}) where {F <: Function} = p.nlp()
 """Returns the id of a `Problem`."""
 get_id(p::Problem) = p.id
 
-"""Struct that contains metrics of a given `AbstractNLPModel`.
-The goal is to measure the performance of an arbitrary solver solving a particular `AbstractNLPModel`.
+"""
+    ProblemMetrics
+
+Structure that contains metrics of a given solver applied to an `AbstractNLPModel`.
+
 The following metrics are stored:
 
-1. times → Execution time of one or many attempts of solving the nlp.
-2. memory → Memory allocated to solve the nlp.
-3. solved → Status of the nlp after solve. this attribute is `true` if nlp is solved and `false` otherwise.
-4. Counters → Struct containing counters to the evaluations of certain methods related to the nlp (e.g, number of evaluations of the objective).
+- `pb_id::Int`: identifier of the problem solved, see [`Problem`](@ref);
+- `times::Vector{Float64}`: Execution time of the attempts of solving the nlp;
+- `memory::Int`: Memory allocated to solve the nlp;
+- `status::Symbol`: Status of the nlp after solve, see [SolverCore.jl's documentation](https://juliasmoothoptimizers.github.io/SolverCore.jl/dev/);
+- `counters::Counters`: Counters of the nlp, see [NLPModels.jl's documentation](https://juliasmoothoptimizers.github.io/NLPModels.jl/dev/tools/).
 """
 struct ProblemMetrics
   pb_id::Int
@@ -92,31 +96,44 @@ get_status(p::ProblemMetrics) = p.status
 get_counters(p::ProblemMetrics) = p.counters
 
 """
-    time_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+    time_only(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
 
 Return the median time, if more than one solve, of `p_metric`.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
-function time_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
-  median(get_times(p_metric)) + is_failure(get_status(p_metric)) * penalty
+function time_only(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
+  total = 0.0
+  for p_metric in vec_metric
+    total += median(get_times(p_metric)) + is_failure(get_status(p_metric)) * penalty
+  end
+  return total
 end
 
 """
-    memory_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+    memory_only(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
 
 Return the memory used in `p_metric`.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
-memory_only(p_metric::ProblemMetrics; penalty::Float64 = 5.0) =
-  get_memory(p_metric) + is_failure(get_status(p_metric)) * penalty
+function memory_only(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
+  total = 0.0
+  for p_metric in vec_metric
+    total += get_memory(p_metric) + is_failure(get_status(p_metric)) * penalty
+  end
+  return total
+end
 
 """
-    sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
+    sumfc(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
 
 Return the sum of the evaluations of the objective function and constraint function.
 Unsolved problems are penalyzed by a `penalty` factor.
 """
-function sumfc(p_metric::ProblemMetrics; penalty::Float64 = 5.0)
-  counters = get_counters(p_metric)
-  return counters.neval_obj + counters.neval_cons + is_failure(get_status(p_metric)) * penalty
+function sumfc(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
+  total = 0.0
+  for p_metric in vec_metric
+    counters = get_counters(p_metric)
+    total += counters.neval_obj + counters.neval_cons + is_failure(get_status(p_metric)) * penalty
+  end
+  return total
 end

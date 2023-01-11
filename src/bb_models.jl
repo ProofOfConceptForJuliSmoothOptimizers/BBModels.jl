@@ -12,7 +12,7 @@ The following constructors are available:
 - `parameter_set::AbstractParameterSet`: structure containing parameters information;
 - `problems::Vector{AbstractNLPModel}`: set of problem to run the benchmark on;
 - `solver_function::Function`: function that takes an `AbstractNLPModel` and a `AbstractParameterSet` and returns a [`GenericExecutionStats`](https://github.com/JuliaSmoothOptimizers/SolverCore.jl/blob/main/src/stats.jl).
-- `f::Function`: Given a `ProblemMetrics` returns a score as a Float64 (examples are `time_only`, `memory_only`, `sumfc`);
+- `f::Function`: Given a `Vector{ProblemMetrics}` returns a score as a Float64 (examples are [`time_only`](@ref), [`memory_only`](@ref), [`sumfc`](@ref));
 
 For constrained problems:
 
@@ -140,14 +140,12 @@ function NLPModels.obj(nlp::BBModel, x::AbstractVector; kwargs...)
   @lencheck nlp.meta.nvar x
   increment!(nlp, :neval_obj)
   param_set, subset = nlp.parameter_set, nlp.subset
-  total = 0.0
+  vec_metric = Vector{ProblemMetrics}(undef, length(nlp.problems))
   for (pb_id, problem) in nlp.problems
     set_values_num!(subset, param_set, x)
-    p_metric = cost(nlp, problem; kwargs...)
-    total += nlp.f(p_metric)
+    vec_metric[pb_id] = cost(nlp, problem; kwargs...)
   end
-
-  return total
+  return nlp.f(vec_metric)
 end
 
 """
@@ -164,14 +162,12 @@ function obj_cat(nlp::BBModel, x::AbstractVector; kwargs...)
   @lencheck nlp.bb_meta.nvar x
   increment!(nlp, :neval_obj)
   param_set, subset = nlp.parameter_set, nlp.subset
-  total = 0.0
+  vec_metric = Vector{ProblemMetrics}(undef, length(nlp.problems))
   for (pb_id, problem) in nlp.problems
     set_values!(subset, param_set, x)
-    p_metric = cost(nlp, problem; kwargs...)
-    total += nlp.f(p_metric)
+    vec_metric[pb_id] = cost(nlp, problem; kwargs...)
   end
-
-  return total
+  return nlp.f(vec_metric)
 end
 
 """

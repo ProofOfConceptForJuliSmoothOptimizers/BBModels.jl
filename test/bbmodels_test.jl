@@ -107,12 +107,16 @@ end
   @test obj_cat(nlp, x0) ≥ 0
 end
 
-function tailored_aux_func(p_metric::ProblemMetrics)
-  median_time = median(get_times(p_metric))
-  memory = get_memory(p_metric)
-  solved = !is_failure(get_status(p_metric))
-  counters = get_counters(p_metric)
-  return median_time + memory + counters.neval_obj + (Float64(!solved) * 5.0 * median_time)
+function tailored_aux_func(vec_metric::Vector{ProblemMetrics})
+  total = 0.0
+  for p_metric in vec_metric
+    median_time = median(get_times(p_metric))
+    memory = get_memory(p_metric)
+    solved = !is_failure(get_status(p_metric))
+    counters = get_counters(p_metric)
+    total += median_time + memory + counters.neval_obj + (Float64(!solved) * 5.0 * median_time)
+  end
+  return total
 end
 
 @testset "Testing BBModels with cost functions $(string(aux_func))" for aux_func in (
