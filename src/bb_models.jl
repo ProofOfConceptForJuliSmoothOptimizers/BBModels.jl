@@ -1,4 +1,4 @@
-export BBModel, obj, obj_cat, cost
+export BBModel, obj, obj_nomad, obj_cat, cost
 
 """Mutable struct `BBModel`
 
@@ -131,13 +131,33 @@ function NLPModels.obj(nlp::BBModel, x::AbstractVector; kwargs...)
   increment!(nlp, :neval_obj)
   param_set, subset = nlp.parameter_set, nlp.subset
   vec_metric = Vector{ProblemMetrics}(undef, length(nlp.problems))
+  set_values_num!(subset, param_set, x)
   for (pb_id, problem) in nlp.problems
-    set_values_num!(subset, param_set, x)
     vec_metric[pb_id] = cost(nlp, problem; kwargs...)
   end
   return nlp.f(vec_metric)
 end
 
+"""
+    obj_nomad(nlp::BBModel, x::AbstractVector, problems::Vector{Problem}; kwargs...)
+
+Objective function of the `BBModel` to be used with SolverTuning.jl. 
+The difference with [`obj`](@ref) is the positional parameter `problems`.
+Therefore, `x` is of length `nlp.meta.nvar`.
+
+The keyword arguments are passed to [`cost`](@ref).
+"""
+function obj_nomad(nlp::BBModel, x::AbstractVector, problems::Vector{Problem}; kwargs...)
+  @lencheck nlp.meta.nvar x
+  increment!(nlp, :neval_obj)
+  param_set, subset = nlp.parameter_set, nlp.subset
+  vec_metric = Vector{ProblemMetrics}(undef, length(problems))
+  set_values_num!(subset, param_set, x)
+  for (pb_id, problem) in problems
+    vec_metric[pb_id] = cost(nlp, problem; kwargs...)
+  end
+  return nlp.f(vec_metric), vec_metric
+end
 """
     obj_cat(nlp::BBModel, x::AbstractVector; kwargs...)
 
