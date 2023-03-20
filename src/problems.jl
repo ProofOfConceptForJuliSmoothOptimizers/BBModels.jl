@@ -83,11 +83,11 @@ ProblemMetrics(id::Int64, t::Tuple{Vector{Float64}, Int64, Symbol, Counters}) =
 """Returns the id of the problem linked to this `ProblemMetrics` instance."""
 get_pb_id(p::ProblemMetrics) = p.pb_id
 
-"""Returns the times required to solve the problem linked to this `ProblemMetrics` instance."""
-get_times(p::ProblemMetrics) = p.times
+"""Returns the times required in seconds to solve the problem linked to this `ProblemMetrics` instance."""
+get_times(p::ProblemMetrics) = p.times ./ 1.0e9
 
-"""Returns the memory allocated to solve the problem linked to this `ProblemMetrics` instance."""
-get_memory(p::ProblemMetrics) = p.memory
+"""Returns the memory allocated in Mb to solve the problem linked to this `ProblemMetrics` instance."""
+get_memory(p::ProblemMetrics) = p.memory ÷ (2^20)
 
 """Returns the problem linked to this `ProblemMetrics` instance is solved."""
 get_status(p::ProblemMetrics) = p.status
