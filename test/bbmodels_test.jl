@@ -112,7 +112,7 @@ function tailored_aux_func(vec_metric::Vector{ProblemMetrics})
   for p_metric in vec_metric
     median_time = median(get_times(p_metric))
     memory = get_memory(p_metric)
-    solved = !is_failure(get_status(p_metric))
+    solved = !is_failure(BBModels.get_status(p_metric))
     counters = get_counters(p_metric)
     total += median_time + memory + counters.neval_obj + (Float64(!solved) * 5.0 * median_time)
   end

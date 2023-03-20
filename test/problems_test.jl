@@ -12,7 +12,7 @@
   @test get_pb_id(p_metrics) == 1
   @test get_times(p_metrics) ≈ (bmark.times ./ 1.0e9)
   @test get_memory(p_metrics) == (bmark.memory ÷ (2^20))
-  @test is_failure(get_status(p_metrics)) isa Bool
+  @test is_failure(BBModels.get_status(p_metrics)) isa Bool
   for field in fieldnames(Counters)
     @test getfield(get_counters(p_metrics), field) == getfield(nlp.counters, field)
   end
