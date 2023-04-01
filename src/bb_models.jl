@@ -156,7 +156,7 @@ function obj_nomad(nlp::BBModel, x::AbstractVector, problems::Vector{Problem}; k
   for (i, problem) in enumerate(problems)
     vec_metric[i] = cost(nlp, problem; kwargs...)
   end
-  return nlp.f(vec_metric), vec_metric
+  return vec_metric
 end
 """
     obj_cat(nlp::BBModel, x::AbstractVector; kwargs...)
