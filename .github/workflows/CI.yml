@@ -50,8 +50,8 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
             Pkg.add(PackageSpec(url="https://github.com/MonssafToukal/SolverParameters.jl"))
+            Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - run: |
           julia --project=docs -e '
