@@ -1,7 +1,9 @@
 module BBModels
 
+using Distributed
 # TODO: keep this until the SolverParameters is registered
 using Statistics
+using StaticArrays
 
 using LinearOperators, NLPModels, NLPModelsModifiers, SolverCore
 
@@ -20,5 +22,7 @@ include("benchmark_macros.jl")
 include("problems.jl")
 include("meta.jl")
 include("bb_models.jl")
+
+const PROBLEM_PARTITION = Vector{ProblemMetrics}()
 
 end
