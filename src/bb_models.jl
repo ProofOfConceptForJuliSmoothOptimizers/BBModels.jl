@@ -130,12 +130,30 @@ function NLPModels.obj(nlp::BBModel, x::AbstractVector; kwargs...)
   @lencheck nlp.meta.nvar x
   increment!(nlp, :neval_obj)
   param_set, subset = nlp.parameter_set, nlp.subset
-  vec_metric = Vector{ProblemMetrics}(undef, length(nlp.problems))
   set_values_num!(subset, param_set, x)
-  for (pb_id, problem) in nlp.problems
-    vec_metric[pb_id] = cost(nlp, problem; kwargs...)
+
+  # Support parallel processes
+  futures = Dict{Int, Future}()
+  @sync for worker_id in workers()
+    @async futures[worker_id] = @spawnat worker_id let worker_metrics = Vector{ProblemMetrics}(undef, length(PROBLEM_PARTITION))
+      # global variable declared in BBModels.jl
+      # Contains the id of the problems. 
+      global PROBLEM_PARTITION
+      for (i, pb_id) in enumerate(PROBLEM_PARTITION)
+        worker_metrics[i] = cost(nlp, nlp.problems[pb_id]; kwargs...)
+      end
+      return worker_metrics
+    end
   end
-  return nlp.f(vec_metric)
+  # Collect all the metrics from the workers
+  worker_metrics = Dict{Int, Vector{ProblemMetrics}}()
+  @sync for worker_id in keys(futures)
+    @async worker_metrics[worker_id] = fetch(futures[worker_id])
+  end
+
+  vec_metric = vcat(collect(values(worker_metrics))...)
+  # return worker_metrics to get data from workers
+  return nlp.f(vec_metric), worker_metrics
 end
 
 """
