@@ -1,7 +1,6 @@
 using Pkg
 Pkg.activate(".")
-# Pkg.add(url="https://github.com/MonssafToukal/SolverParameters.jl", rev="main")
-Pkg.add(url="https://github.com/tmigot/SolverParameters.jl", rev="fix-rand")
+Pkg.add(url="https://github.com/MonssafToukal/SolverParameters.jl", rev="main")
 Pkg.add(url="https://github.com/ProofOfConceptForJuliSmoothOptimizers/BBModels.jl", rev="main")
 
 using SolverParameters

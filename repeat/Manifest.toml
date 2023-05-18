@@ -24,8 +24,8 @@ version = "1.1.1"
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
 [[deps.BBModels]]
-deps = ["ADNLPModels", "BenchmarkTools", "LinearOperators", "NLPModels", "NLPModelsModifiers", "SolverCore", "SolverParameters", "Statistics"]
-git-tree-sha1 = "f8947db9df2af90a49a6b17f415e45b5141626c6"
+deps = ["BenchmarkTools", "LinearOperators", "NLPModels", "SolverCore", "SolverParameters", "Statistics"]
+git-tree-sha1 = "9df4972ce53a6c5287621e3664c55915ae1598f8"
 repo-rev = "main"
 repo-url = "https://github.com/ProofOfConceptForJuliSmoothOptimizers/BBModels.jl"
 uuid = "adf32eb0-fe7e-47bb-93e4-fe96e72f6839"
@@ -474,7 +474,7 @@ version = "0.3.3"
 
 [[deps.SolverParameters]]
 deps = ["Random"]
-git-tree-sha1 = "4e3968e9206e5a6541ff4e6881879190447121c8"
+git-tree-sha1 = "e3ca286574b2cd80a999472defa08fbd94d4dfac"
 repo-rev = "main"
 repo-url = "https://github.com/MonssafToukal/SolverParameters.jl"
 uuid = "d076d87d-d1f9-4ea3-a44b-64b4cdd1e470"
