@@ -20,4 +20,6 @@ include("problems.jl")
 include("meta.jl")
 include("bb_models.jl")
 
+include("solver/random_solver.jl")
+
 end
