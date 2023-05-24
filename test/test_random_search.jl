@@ -5,8 +5,8 @@ struct LBFGSParameterSet{T <: Real} <: AbstractParameterSet
   τ₁::Parameter{T, RealInterval{T}}
   bk_max::Parameter{Int, IntegerRange{Int}}
   # add scaling
-  
-  function LBFGSParameterSet{T}(;mem::Int = 5, τ₁::T = T(0.9999), bk_max::Int = 25) where {T}        
+
+  function LBFGSParameterSet{T}(; mem::Int = 5, τ₁::T = T(0.9999), bk_max::Int = 25) where {T}
     p_set = new(
       Parameter(mem, IntegerRange(Int(1), Int(20)), "mem"),
       Parameter(τ₁, RealInterval(T(0), T(1)), "τ₁"),
@@ -15,7 +15,7 @@ struct LBFGSParameterSet{T <: Real} <: AbstractParameterSet
     return p_set
   end
 
-  function LBFGSParameterSet(;kwargs...)
+  function LBFGSParameterSet(; kwargs...)
     return LBFGSParameterSet{Float64}(; kwargs...)
   end
 end
@@ -23,7 +23,7 @@ end
 include("lbfgs.jl")
 
 param_set = LBFGSParameterSet()
-subset = (:mem, ) # optimize only `mem`
+subset = (:mem,) # optimize only `mem`
 
 using BenchmarkTools
 

@@ -62,16 +62,17 @@ function SolverCore.reset!(solver::LBFGSSolver, nlp::AbstractNLPModel)
   solver
 end
 
-function SolverCore.solve!(solver::AbstractOptimizationSolver, param::AbstractParameterSet, model::AbstractNLPModel; kwargs...)
+function SolverCore.solve!(
+  solver::AbstractOptimizationSolver,
+  param::AbstractParameterSet,
+  model::AbstractNLPModel;
+  kwargs...,
+)
   stats = GenericExecutionStats(model)
   solve!(solver, param, model, stats; kwargs...)
 end
 
-function lbfgs(
-  nlp::AbstractNLPModel;
-  mem::Int = 5,
-  kwargs...,
-)
+function lbfgs(nlp::AbstractNLPModel; mem::Int = 5, kwargs...)
   param = LBFGSParameterSet(mem = mem)
   return lbfgs(nlp, param; kwargs...)
 end
