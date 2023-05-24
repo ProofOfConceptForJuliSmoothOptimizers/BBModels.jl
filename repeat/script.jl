@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(".")
 Pkg.add(url="https://github.com/MonssafToukal/SolverParameters.jl", rev="main")
-Pkg.add(url="https://github.com/ProofOfConceptForJuliSmoothOptimizers/BBModels.jl", rev="main")
+Pkg.add(url="https://github.com/ProofOfConceptForJuliSmoothOptimizers/BBModels.jl", rev="presentation")
 
 using SolverParameters
 
@@ -68,23 +68,14 @@ model = BBModel(
   subset = subset,
 )
 
-function very_smart_algo(model::BBModel; verbose = 0, max_time = 30.0, max_iter = 10)
-  cache = Float64[]
-  cache_x = Any[]
-  start_time = time()
-  for i=1:max_iter
-    time() - start_time > max_time && break
-    x = SolverParameters.rand(model.subset, model.parameter_set) # may return categorical variables
-    @show x
-    fx = BBModels.obj_cat(model, x)
-    push!(cache, fx)
-    push!(cache_x, x)
-    (verbose > 0) && println("$i: fx=$fx")
-  end
-  is = argmin(cache)
-  println("Best value is mem=$(cache_x[is])")
-  return cache_x[is]
-end
-
-vals = very_smart_algo(model, verbose = 1)
+vals = BBModels.random_search(model, verbose = 1)
 set_values!(subset, param_set, vals)
+
+model = BBModel(
+  param_set, # AbstractParameterSet
+  problems, # vector of AbstractNLPModel
+  solver_func, # (::AbstractNLPModel, ::AbstractParameterSet) -> GenericExecutionStats
+  fun, # time_only, memory_only, sumfc OR a hand-made function
+)
+vals = BBModels.random_search(model, verbose = 1)
+set_values!(param_set, vals)
