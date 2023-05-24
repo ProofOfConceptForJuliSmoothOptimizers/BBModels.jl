@@ -3,10 +3,10 @@ using SolverCore
 using NLPModels
 using ADNLPModels
 using OptimizationProblems, OptimizationProblems.ADNLPProblems
-using JSOSolvers
 using Test
 using SolverParameters
 using Statistics
+using LinearAlgebra
 
 T = Float64
 n = 5
@@ -18,6 +18,7 @@ problems = [eval(p)(type = Val(T)) for (_, p) ∈ zip(1:n, list)]
 problems_expr = [() -> eval(p)(type = Val(T)) for (_, p) ∈ zip(1:n, list)]
 
 @testset "BBModels.jl" verbose = true begin
+  include("test_random_search.jl")
   include("param_structs.jl")
   include("test_utils.jl")
   include("benchmark_macros_test.jl")
