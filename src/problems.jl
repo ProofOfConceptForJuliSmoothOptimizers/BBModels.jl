@@ -105,7 +105,9 @@ function time_only(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
   total = 0.0
   avg_time = mean([median(get_times(p)) for p in vec_metric])
   for p_metric in vec_metric
-    total += median(get_times(p_metric)) * (1 + is_failure(get_status(p_metric)) * penalty) + is_failure(get_status(p_metric)) * avg_time
+    total +=
+      median(get_times(p_metric)) * (1 + is_failure(get_status(p_metric)) * penalty) +
+      is_failure(get_status(p_metric)) * avg_time
   end
   return total
 end
@@ -120,7 +122,9 @@ function memory_only(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
   total = 0.0
   avg_mem = mean([get_memory(p) for p in vec_metric])
   for p_metric in vec_metric
-    total += get_memory(p_metric) * (1 + is_failure(get_status(p_metric)) * penalty) + is_failure(get_status(p_metric)) * avg_mem
+    total +=
+      get_memory(p_metric) * (1 + is_failure(get_status(p_metric)) * penalty) +
+      is_failure(get_status(p_metric)) * avg_mem
   end
   return total
 end
@@ -136,7 +140,10 @@ function sumfc(vec_metric::Vector{ProblemMetrics}; penalty::Float64 = 5.0)
   avg_nevals = mean([get_counters(p).neval_obj + get_counters(p).neval_cons for p in vec_metric])
   for p_metric in vec_metric
     counters = get_counters(p_metric)
-    total += counters.neval_obj + counters.neval_cons * (1 + is_failure(get_status(p_metric)) * penalty) + is_failure(get_status(p_metric)) * avg_nevals
+    total +=
+      counters.neval_obj +
+      counters.neval_cons * (1 + is_failure(get_status(p_metric)) * penalty) +
+      is_failure(get_status(p_metric)) * avg_nevals
   end
   return total
 end
